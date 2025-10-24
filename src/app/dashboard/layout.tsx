@@ -23,9 +23,9 @@ interface SimulatedUser {
 
 const navLinks = [
   { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
-  { href: "#", demoHref: "#", label: "Asistentes", icon: Bot },
-  { href: "#", demoHref: "#", label: "Clientes", icon: Users },
-  { href: "#", demoHref: "#", label: "Créditos", icon: Package },
+  { href: "/dashboard", demoHref: "/dashboarddemo", label: "Asistentes", icon: Bot },
+  { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Clientes", icon: Users },
+  { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: Package },
 ];
 
 const MobileBottomNav = () => {
@@ -36,7 +36,7 @@ const MobileBottomNav = () => {
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
             <nav className="grid grid-cols-4 items-center justify-around h-16">
                 {navLinks.map(link => {
-                    const href = isDemo ? link.demoHref : link.href;
+                    const href = isDemo && ['/dashboard', '/dashboard/'].includes(link.href) ? link.demoHref : link.href;
                     const isActive = pathname === href;
                     return (
                         <Link key={`${href}-${link.label}-mobile`} href={href} className={`flex flex-col items-center justify-center gap-1 transition-colors h-full ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { toast } = useToast();
 
-  const isDemo = pathname === '/dashboarddemo';
+  const isDemo = pathname.startsWith('/dashboarddemo');
 
   useEffect(() => {
     // Simulate auth state change
@@ -76,10 +76,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         email: 'guest@example.com',
         photoURL: null,
       });
-      toast({
-        title: "Modo Demostración",
-        description: "Estás viendo una versión de demostración. Inicia sesión para guardar tu trabajo.",
-      });
+      if(pathname === '/dashboarddemo'){
+        toast({
+            title: "Modo Demostración",
+            description: "Estás viendo una versión de demostración. Inicia sesión para guardar tu trabajo.",
+        });
+      }
     } else {
        // Simulate a logged-in user for the main dashboard
        setUser({
@@ -140,9 +142,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   
   const desktopNavLinks = [
     { href: isDemo ? "/dashboarddemo" : "/dashboard", label: "Dashboard", icon: Home, badge: 0 },
-    { href: "#", label: "Asistentes", icon: Bot, badge: isDemo ? 4 : 3 },
-    { href: "#", label: "Clientes", icon: Users, badge: 0 },
-    { href: "#", label: "Créditos", icon: Package, badge: 0 },
+    { href: isDemo ? "/dashboarddemo" : "/dashboard", label: "Asistentes", icon: Bot, badge: isDemo ? 4 : 3 },
+    { href: "/dashboard/clients", label: "Clientes", icon: Users, badge: 0 },
+    { href: "/dashboard/credits", label: "Créditos", icon: Package, badge: 0 },
   ];
 
   return (
@@ -188,7 +190,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background z-40 md:static">
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background z-40 md:justify-end">
           <Link href="/" className="flex items-center gap-2 font-semibold font-headline md:hidden">
               <Bot className="h-6 w-6 text-primary" />
               <span className="text-base">Hey Manito!</span>
