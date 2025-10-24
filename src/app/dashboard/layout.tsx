@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +20,35 @@ interface SimulatedUser {
   email: string | null;
   photoURL: string | null;
 }
+
+const navLinks = [
+  { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
+  { href: "#", demoHref: "#", label: "Asistentes", icon: Bot },
+  { href: "#", demoHref: "#", label: "Clientes", icon: Users },
+  { href: "#", demoHref: "#", label: "Créditos", icon: Package },
+];
+
+const MobileBottomNav = () => {
+    const pathname = usePathname();
+    const isDemo = pathname === '/dashboarddemo';
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
+            <nav className="grid grid-cols-4 items-center justify-around h-16">
+                {navLinks.map(link => {
+                    const href = isDemo ? link.demoHref : link.href;
+                    const isActive = pathname === href;
+                    return (
+                        <Link key={`${href}-${link.label}-mobile`} href={href} className={`flex flex-col items-center justify-center gap-1 transition-colors h-full ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+                            <link.icon className="h-5 w-5" />
+                            <span className="text-xs font-medium">{link.label}</span>
+                        </Link>
+                    )
+                })}
+            </nav>
+        </div>
+    );
+};
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -110,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return loadingSkeleton;
   }
   
-  const navLinks = [
+  const desktopNavLinks = [
     { href: isDemo ? "/dashboarddemo" : "/dashboard", label: "Dashboard", icon: Home, badge: 0 },
     { href: "#", label: "Asistentes", icon: Bot, badge: isDemo ? 4 : 3 },
     { href: "#", label: "Clientes", icon: Users, badge: 0 },
@@ -133,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {navLinks.map(link => (
+              {desktopNavLinks.map(link => (
                  <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-primary-foreground hover:text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
@@ -160,50 +188,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="shrink-0 md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <SheetHeader>
-                <SheetTitle>
-                  <Link href="#" className="flex items-center gap-2 text-lg font-semibold font-headline">
-                    <Bot className="h-6 w-6 text-primary" />
-                    <span>Hey Manito!</span>
-                  </Link>
-                </SheetTitle>
-              </SheetHeader>
-              <nav className="grid gap-2 text-lg font-medium mt-4">
-                {navLinks.map(link => (
-                  <Link key={`${link.href}-${link.label}-mobile`} href={link.href} className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 ${pathname === link.href ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                      <link.icon className="h-5 w-5" />
-                      {link.label}
-                      {link.badge > 0 && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{link.badge}</Badge>}
-                  </Link>
-                ))}
-              </nav>
-              <div className="mt-auto">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Comprar Créditos</CardTitle>
-                    <CardDescription>
-                      1 crédito equivale a 1000 mensajes.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button size="sm" className="w-full">Comprar</Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <div className="w-full flex-1">
-            {/* Can be used for search */}
+        <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background z-40 md:static">
+          <Link href="/" className="flex items-center gap-2 font-semibold font-headline md:hidden">
+              <Bot className="h-6 w-6 text-primary" />
+              <span className="text-base">Hey Manito!</span>
+          </Link>
+          <div className="w-full flex-1 md:hidden">
+            {/* Can be used for mobile header content */}
           </div>
           
           <DropdownMenu>
@@ -226,9 +217,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40 pb-20 md:pb-6">
           {children}
         </main>
+        <MobileBottomNav />
       </div>
     </div>
   );
