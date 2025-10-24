@@ -1,4 +1,4 @@
-import { PlusCircle, MoreHorizontal, Bot, MessageSquare, Clock } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Bot, MessageSquare, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,18 +26,20 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-center text-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Mis Asistentes</h1>
           <p className="text-sm text-muted-foreground">Gestiona y monitorea tus bots de WhatsApp aquí.</p>
         </div>
-        <Button>
-          <PlusCircle className="mr-0 md:mr-2 h-4 w-4" />
-          <span className="hidden md:inline">Crear Nuevo</span>
+        <Button size="lg" className="btn-shiny animated-gradient text-white font-bold w-full md:w-auto">
+           <span className="btn-shiny-content flex items-center">
+             <Sparkles className="mr-2 h-4 w-4" />
+             Crear Bot
+           </span>
         </Button>
       </div>
 
-      <div className="grid gap-4 md:gap-6">
+      <div className="grid gap-4 md:gap-6 pt-4">
         {assistants.map((assistant) => (
           <Card key={assistant.name}>
             <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 md:p-6">

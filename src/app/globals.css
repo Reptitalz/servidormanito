@@ -78,3 +78,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .btn-shiny {
+    @apply relative overflow-hidden;
+  }
+  .btn-shiny::before {
+    content: '';
+    @apply absolute -top-1/2 -left-1/2 w-[200%] h-[200%] bg-primary opacity-0 transition-opacity duration-500;
+    background: conic-gradient(
+      transparent,
+      hsl(var(--primary) / 0.5),
+      transparent 30%
+    );
+    animation: rotate 4s linear infinite;
+  }
+  .btn-shiny:hover::before {
+    @apply opacity-100;
+  }
+  .btn-shiny .btn-shiny-content {
+     @apply relative z-10;
+  }
+
+  @keyframes rotate {
+    100% {
+      transform: rotate(1turn);
+    }
+  }
+}
