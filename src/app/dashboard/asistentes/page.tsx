@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export default function AsistentesPage() {
   const assistants = [
@@ -31,11 +32,13 @@ export default function AsistentesPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Mis Asistentes</h1>
           <p className="text-sm text-muted-foreground">Gestiona y monitorea tus bots de WhatsApp aquí.</p>
         </div>
-        <Button size="lg" className="btn-shiny animated-gradient text-white font-bold w-full md:w-auto">
-           <span className="btn-shiny-content flex items-center">
-             <Sparkles className="mr-2 h-4 w-4" />
-             Crear Bot
-           </span>
+        <Button size="lg" className="btn-shiny animated-gradient text-white font-bold w-full md:w-auto" asChild>
+           <Link href="/dashboard/asistentes/crear">
+            <span className="btn-shiny-content flex items-center">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Crear Bot
+            </span>
+           </Link>
         </Button>
       </div>
 
