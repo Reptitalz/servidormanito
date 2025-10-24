@@ -81,8 +81,8 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2 text-white -rotate-6">
           <Bot className="h-8 w-8" />
           <div className="flex flex-col text-xl font-bold font-headline leading-none">
-            <span>Manito!</span>
             <span>Hey</span>
+            <span>Manito!</span>
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white/90">

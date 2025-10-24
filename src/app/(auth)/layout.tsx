@@ -12,8 +12,8 @@ export default function AuthLayout({
         <Link href="/" className="flex items-center gap-2 text-foreground -rotate-6">
           <Bot className="h-8 w-8 text-primary" />
           <div className="flex flex-col text-xl font-bold font-headline leading-none">
-            <span>Manito!</span>
             <span>Hey</span>
+            <span>Manito!</span>
           </div>
         </Link>
       </div>

@@ -177,8 +177,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/" className="flex items-center gap-2 font-semibold font-headline -rotate-6">
               <Bot className="h-6 w-6 text-primary" />
               <div className="flex flex-col text-lg leading-none">
-                <span>Manito!</span>
-                <span className='text-base'>Hey</span>
+                <span>Hey</span>
+                <span className='text-base'>Manito!</span>
               </div>
             </Link>
             <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
@@ -219,8 +219,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Link href="/" className="flex items-center gap-2 font-semibold font-headline md:hidden -rotate-6">
             <Bot className="h-6 w-6 text-primary" />
             <div className="flex flex-col text-base leading-none">
-              <span>Manito!</span>
-              <span className='text-sm'>Hey</span>
+              <span>Hey</span>
+              <span className='text-sm'>Manito!</span>
             </div>
           </Link>
           <div className="w-full flex-1 md:hidden">

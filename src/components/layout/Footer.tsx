@@ -11,8 +11,8 @@ export function Footer() {
           <div className="flex items-center gap-2 -rotate-6">
             <Bot className="h-8 w-8 text-primary" />
             <div className="flex flex-col text-xl font-bold text-white font-headline leading-none">
-              <span>Manito!</span>
               <span>Hey</span>
+              <span>Manito!</span>
             </div>
           </div>
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
