@@ -67,12 +67,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const getDisplayName = () => {
     if (user?.isAnonymous) return 'Invitado';
     return user?.displayName;
-  }
+  };
   
   const getDisplayEmail = () => {
     if (user?.isAnonymous) return 'Explorando como invitado';
     return user?.email;
-  }
+  };
 
   const loadingSkeleton = (
       <div className="flex min-h-screen w-full flex-col">
@@ -181,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <CardDescription>
                       1 crédito equivale a 1000 mensajes.
                     </CardDescription>
-                  </Header>
+                  </CardHeader>
                   <CardContent>
                     <Button size="sm" className="w-full">Comprar</Button>
                   </CardContent>
