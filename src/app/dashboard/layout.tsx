@@ -2,15 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, CircleUser, Home, LogOut, Menu, Package, Users } from "lucide-react";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { Bell, Bot, Home, LogOut, Menu, Package, Users } from "lucide-react";
+import { onAuthStateChanged, signInAnonymously, signOut, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isDemo = pathname === '/dashboarddemo';
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
         if (user.isAnonymous && !isDemo) {
@@ -39,7 +38,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           });
         }
       } else {
-        router.push('/login');
+        try {
+          const userCredential = await signInAnonymously(auth);
+          setUser(userCredential.user);
+          router.push('/dashboarddemo');
+        } catch (error) {
+          console.error("Error during anonymous sign-in:", error);
+          router.push('/login');
+        }
       }
       setLoading(false);
     });
@@ -68,8 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return user?.email;
   }
 
-  if (loading) {
-    return (
+  const loadingSkeleton = (
       <div className="flex min-h-screen w-full flex-col">
         <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
           <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -86,11 +91,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Skeleton className="h-[70vh] w-full" />
         </main>
       </div>
-    );
+  );
+
+  if (loading) {
+    return loadingSkeleton;
   }
   
   if (!user) {
-    return null;
+    // Still loading or redirecting, show skeleton.
+    return loadingSkeleton;
   }
 
   const navLinks = [
@@ -172,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <CardDescription>
                       1 crédito equivale a 1000 mensajes.
                     </CardDescription>
-                  </CardHeader>
+                  </Header>
                   <CardContent>
                     <Button size="sm" className="w-full">Comprar</Button>
                   </CardContent>
