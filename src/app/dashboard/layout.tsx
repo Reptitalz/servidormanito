@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, Home, LogOut, Menu, Package, Users } from "lucide-react";
+import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard } from "lucide-react";
 import { useSwipeable } from 'react-swipeable';
 
 import { Badge } from "@/components/ui/badge";
@@ -26,12 +26,12 @@ const navLinks = [
   { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
   { href: "/dashboard/asistentes", demoHref: "/dashboarddemo/asistentes", label: "Asistentes", icon: Bot },
   { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Clientes", icon: Users },
-  { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: Package },
+  { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
 ];
 
 const MobileBottomNav = () => {
     const pathname = usePathname();
-    const isDemo = pathname === '/dashboarddemo';
+    const isDemo = pathname.startsWith('/dashboarddemo');
 
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const handleSwipe = (direction: number) => {
     const currentPath = pathname;
     const isDemo = currentPath.startsWith('/dashboarddemo');
-    const relevantLinks = navLinks.map(l => isDemo ? l.demoHref : l.href);
+    const relevantLinks = navLinks.map(l => isDemo && l.demoHref ? l.demoHref : l.href);
     const currentIndex = relevantLinks.indexOf(currentPath);
 
     if (currentIndex !== -1) {
@@ -162,12 +162,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return loadingSkeleton;
   }
   
-  const desktopNavLinks = [
-    { href: isDemo ? "/dashboarddemo" : "/dashboard", label: "Dashboard", icon: Home, badge: 0 },
-    { href: isDemo ? "/dashboarddemo/asistentes" : "/dashboard/asistentes", label: "Asistentes", icon: Bot, badge: isDemo ? 4 : 3 },
-    { href: "/dashboard/clients", label: "Clientes", icon: Users, badge: 0 },
-    { href: "/dashboard/credits", label: "Créditos", icon: Package, badge: 0 },
-  ];
+  const desktopNavLinks = navLinks.map(link => ({
+    ...link,
+    href: isDemo ? link.demoHref : link.href,
+    badge: (link.href === '/dashboard/asistentes' ? (isDemo ? 4 : 3) : 0),
+  }));
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -186,7 +185,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               {desktopNavLinks.map(link => (
-                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-primary-foreground hover:text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
                     {link.badge > 0 && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{link.badge}</Badge>}
@@ -203,8 +202,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Comprar
+                <Button size="sm" className="w-full" asChild>
+                  <Link href="/dashboard/credits">Comprar</Link>
                 </Button>
               </CardContent>
             </Card>
