@@ -2,16 +2,18 @@
 'use client'
 
 import { useState, useMemo, useEffect } from "react";
-import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info } from "lucide-react";
+import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const steps = [
     { name: "Nombre del Asistente", icon: Wand2 },
+    { name: "Imagen de Perfil", icon: ImageIcon },
     { name: "Personalidad", icon: Fingerprint },
     { name: "Conocimiento", icon: Milestone },
 ];
@@ -42,6 +44,7 @@ export default function CreateAssistantPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const [assistantName, setAssistantName] = useState("");
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
+    const [assistantImage, setAssistantImage] = useState<string | null>(null);
 
     const isNameValid = useMemo(() => assistantName.length > 2 && validationErrors.length === 0, [assistantName, validationErrors]);
 
@@ -58,6 +61,24 @@ export default function CreateAssistantPage() {
         const randomSuggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
         setAssistantName(randomSuggestion);
     };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAssistantImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const isStepComplete = (stepIndex: number) => {
+        if (stepIndex === 0) return isNameValid;
+        if (stepIndex === 1) return assistantImage !== null;
+        return false;
+    }
+
 
     return (
         <div className="flex flex-col h-full">
@@ -83,7 +104,7 @@ export default function CreateAssistantPage() {
                                 variant={currentStep === index ? "secondary" : "ghost"}
                                 className="justify-start gap-3"
                                 onClick={() => setCurrentStep(index)}
-                                disabled={index > 0 && !isNameValid} // For now, only step 1 is active
+                                disabled={index > 0 && !isStepComplete(index - 1)}
                             >
                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${currentStep > index ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                     {currentStep > index ? <Check className="h-4 w-4"/> : index + 1}
@@ -113,7 +134,7 @@ export default function CreateAssistantPage() {
                                           onChange={(e) => setAssistantName(e.target.value)}
                                           className={cn(
                                             validationErrors.length > 0 ? "border-destructive focus-visible:ring-destructive" :
-                                            assistantName && "border-green-500 focus-visible:ring-green-500"
+                                            assistantName && isNameValid && "border-green-500 focus-visible:ring-green-500"
                                           )}
                                         />
                                         <Button variant="outline" onClick={handleSuggestName}>
@@ -163,11 +184,75 @@ export default function CreateAssistantPage() {
                     {currentStep === 1 && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>Paso 2: Personalidad</CardTitle>
+                                <CardTitle>Paso 2: Imagen de Perfil</CardTitle>
+                                <CardDescription>Sube una imagen de perfil para tu asistente. Debe ser cuadrada y de al menos 640x640px.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-40 h-40 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                                        {assistantImage ? (
+                                            <Image src={assistantImage} alt="Avatar del asistente" width={160} height={160} className="object-cover w-full h-full" />
+                                        ) : (
+                                            <ImageIcon className="w-20 h-20 text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    <div className="w-full max-w-sm">
+                                        <Label htmlFor="picture" className="sr-only">Elegir archivo</Label>
+                                        <Input id="picture" type="file" accept="image/png, image/jpeg" onChange={handleImageUpload} />
+                                    </div>
+                                </div>
+                                
+                                <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground flex items-start gap-2">
+                                    <Info className="h-5 w-5 shrink-0 mt-0.5" />
+                                    <span>
+                                        La imagen de perfil es clave para la identidad de tu marca en WhatsApp. Asegúrate de que sea clara y representativa.
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                    <Button variant="outline" onClick={() => setCurrentStep(0)}>
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Anterior
+                                    </Button>
+                                     <Button 
+                                        size="lg" 
+                                        className="btn-shiny animated-gradient text-white font-bold"
+                                        disabled={!isStepComplete(1)}
+                                        onClick={() => setCurrentStep(2)}
+                                     >
+                                        <span className="btn-shiny-content flex items-center">
+                                            Siguiente Paso
+                                            <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
+                                        </span>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {currentStep === 2 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Paso 3: Personalidad</CardTitle>
                                 <CardDescription>Define cómo se comportará tu asistente.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <p>Aquí configurarás la personalidad de tu bot.</p>
+                                 <div className="flex justify-between mt-6">
+                                    <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Anterior
+                                    </Button>
+                                    <Button
+                                        size="lg"
+                                        className="btn-shiny animated-gradient text-white font-bold"
+                                        onClick={() => setCurrentStep(3)}
+                                    >
+                                        <span className="btn-shiny-content flex items-center">
+                                            Siguiente Paso
+                                            <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
+                                        </span>
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     )}
@@ -176,3 +261,5 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
+    
