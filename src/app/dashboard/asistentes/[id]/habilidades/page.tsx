@@ -1,12 +1,14 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { ArrowLeft, PhoneCall, PhoneOutgoing, MessageSquare, UserCheck, CreditCard, Receipt, Sheet } from 'lucide-react';
+import { ArrowLeft, PhoneCall, PhoneOutgoing, MessageSquare, UserCheck, CreditCard, Receipt, Sheet, Edit, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const allAssistants = [
     { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"] },
@@ -31,6 +33,38 @@ export default function AssistantSkillsPage() {
     const params = useParams();
     const assistantId = params.id;
     const assistant = allAssistants.find(a => a.id === assistantId);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [selectedSkills, setSelectedSkills] = useState(assistant?.skills || []);
+
+    const handleSkillToggle = (skillId: string) => {
+        setSelectedSkills(prev => {
+            if (prev.includes(skillId)) {
+                return prev.filter(s => s !== skillId);
+            }
+            // For now, let's keep the limit from create page logic, can be adjusted
+            // if (prev.length < 3) { 
+                return [...prev, skillId];
+            // }
+            // return prev;
+        });
+    };
+
+    const handleSave = () => {
+        // Here you would typically save the new skills to your backend
+        console.log("Saving new skills:", selectedSkills);
+        // For now, we'll just update the assistant object in the mock data
+        if (assistant) {
+            assistant.skills = selectedSkills;
+        }
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setSelectedSkills(assistant?.skills || []);
+        setIsEditing(false);
+    };
+
 
     if (!assistant) {
         return (
@@ -66,31 +100,78 @@ export default function AssistantSkillsPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight font-headline">Habilidades de: {assistant.name}</h1>
-                    <p className="text-muted-foreground text-sm">Estas son las habilidades activas para este asistente.</p>
+                    <p className="text-muted-foreground text-sm">
+                        {isEditing ? "Selecciona o modifica las habilidades de tu asistente." : "Estas son las habilidades activas para este asistente."}
+                    </p>
                 </div>
             </header>
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Habilidades Activas</CardTitle>
-                    <CardDescription>
-                        Este bot tiene {enabledSkills.length} {enabledSkills.length === 1 ? 'habilidad' : 'habilidades'} activas.
-                    </CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>{isEditing ? "Editar Habilidades" : "Habilidades Activas"}</CardTitle>
+                            <CardDescription>
+                                {isEditing
+                                    ? `Seleccionadas: ${selectedSkills.length} de ${skillOptions.length}`
+                                    : `Este bot tiene ${enabledSkills.length} ${enabledSkills.length === 1 ? 'habilidad' : 'habilidades'} activas.`
+                                }
+                            </CardDescription>
+                        </div>
+                        {!isEditing && (
+                             <Button variant="outline" onClick={() => setIsEditing(true)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Cambiar Habilidades
+                            </Button>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    {enabledSkills.length > 0 ? (
-                        <div className="space-y-3">
-                            {enabledSkills.map(skill => (
-                                <div key={skill.id} className="flex items-center gap-4 bg-muted/50 p-4 rounded-lg">
-                                    <skill.icon className="h-6 w-6 text-primary" />
-                                    <p className="font-medium">{skill.label}</p>
+                    {isEditing ? (
+                         <div className="space-y-4">
+                            {skillOptions.map((skill) => (
+                                <div key={skill.id} className="flex items-center space-x-3 bg-muted/50 p-3 rounded-md">
+                                    <Checkbox
+                                        id={`edit-${skill.id}`}
+                                        checked={selectedSkills.includes(skill.id)}
+                                        onCheckedChange={() => handleSkillToggle(skill.id)}
+                                    />
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <skill.icon className="h-5 w-5 text-primary" />
+                                        <Label htmlFor={`edit-${skill.id}`} className="font-medium cursor-pointer">
+                                            {skill.label}
+                                        </Label>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">Este asistente no tiene habilidades activas.</p>
+                        enabledSkills.length > 0 ? (
+                            <div className="space-y-3">
+                                {enabledSkills.map(skill => (
+                                    <div key={skill.id} className="flex items-center gap-4 bg-muted/50 p-4 rounded-lg">
+                                        <skill.icon className="h-6 w-6 text-primary" />
+                                        <p className="font-medium">{skill.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-muted-foreground">Este asistente no tiene habilidades activas.</p>
+                        )
                     )}
                 </CardContent>
+                {isEditing && (
+                    <CardFooter className="justify-end gap-2">
+                        <Button variant="ghost" onClick={handleCancel}>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancelar
+                        </Button>
+                        <Button onClick={handleSave}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Guardar Cambios
+                        </Button>
+                    </CardFooter>
+                )}
             </Card>
         </div>
     );
