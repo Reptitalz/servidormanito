@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Phone } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const steps = [
     { name: "Nombre del Asistente", icon: Wand2 },
@@ -292,30 +293,43 @@ export default function CreateAssistantPage() {
                                 <CardDescription>¿Cuál es el rol principal de tu asistente? Esto nos ayudará a pre-configurarlo.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                   {personalityOptions.map((option) => (
-                                       <Card 
-                                         key={option.id}
-                                         className={cn(
-                                            "cursor-pointer hover:border-primary transition-colors",
-                                            selectedPersonality === option.id && "border-primary ring-2 ring-primary"
-                                         )}
-                                         onClick={() => setSelectedPersonality(option.id)}
-                                        >
-                                           <CardHeader className="flex flex-row items-center gap-4">
-                                               <div className="p-2 bg-primary/10 rounded-lg">
-                                                   <option.icon className="h-6 w-6 text-primary" />
-                                               </div>
-                                               <div>
-                                                   <CardTitle className="text-base">{option.title}</CardTitle>
-                                               </div>
-                                           </CardHeader>
-                                           <CardContent>
-                                               <p className="text-sm text-muted-foreground">{option.description}</p>
-                                           </CardContent>
-                                       </Card>
-                                   ))}
-                                </div>
+                                <Carousel
+                                    opts={{
+                                        align: "start",
+                                    }}
+                                    className="w-full"
+                                >
+                                    <CarouselContent>
+                                        {personalityOptions.map((option) => (
+                                            <CarouselItem key={option.id} className="md:basis-1/2">
+                                                <div className="p-1">
+                                                <Card 
+                                                    key={option.id}
+                                                    className={cn(
+                                                        "cursor-pointer hover:border-primary transition-colors h-full",
+                                                        selectedPersonality === option.id && "border-primary ring-2 ring-primary"
+                                                    )}
+                                                    onClick={() => setSelectedPersonality(option.id)}
+                                                    >
+                                                    <CardHeader className="flex flex-row items-center gap-4">
+                                                        <div className="p-2 bg-primary/10 rounded-lg">
+                                                            <option.icon className="h-6 w-6 text-primary" />
+                                                        </div>
+                                                        <div>
+                                                            <CardTitle className="text-base">{option.title}</CardTitle>
+                                                        </div>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <p className="text-sm text-muted-foreground">{option.description}</p>
+                                                    </CardContent>
+                                                </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                </Carousel>
                                  <div className="flex justify-between mt-6">
                                     <Button variant="outline" onClick={() => setCurrentStep(2)}>
                                         <ArrowLeft className="mr-2 h-4 w-4" />
