@@ -31,11 +31,11 @@ const navLinks = [
   { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
 ];
 
-const MobileBottomNav = ({ isCreatePage }: { isCreatePage: boolean }) => {
+const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
     const pathname = usePathname();
     const isDemo = pathname.startsWith('/dashboarddemo');
 
-    if (isCreatePage) return null;
+    if (isSpecialPage) return null;
 
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { toast } = useToast();
 
   const isDemo = pathname.startsWith('/dashboarddemo');
-  const isCreatePage = pathname === '/dashboard/asistentes/crear';
+  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades');
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleSwipe(1),
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   const handleSwipe = (direction: number) => {
-    if (isCreatePage) return; // Disable swipe on create page
+    if (isSpecialPage) return; // Disable swipe on create page
     const currentPath = pathname;
     const isDemo = currentPath.startsWith('/dashboarddemo');
     const relevantLinks = navLinks.map(l => isDemo && l.demoHref ? l.demoHref : l.href);
@@ -174,7 +174,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     badge: (link.href === '/dashboard/asistentes' ? (isDemo ? 4 : 3) : 0),
   }));
 
-  if (isCreatePage) {
+  if (isSpecialPage) {
     return (
         <div className="flex flex-col min-h-screen bg-secondary/40">
              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
@@ -265,7 +265,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main {...swipeHandlers} className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40 pb-20 md:pb-6">
           {children}
         </main>
-        <MobileBottomNav isCreatePage={isCreatePage} />
+        <MobileBottomNav isSpecialPage={isSpecialPage} />
       </div>
     </div>
   );
