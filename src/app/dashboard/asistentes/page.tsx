@@ -1,12 +1,16 @@
 
 
-import { PlusCircle, MoreHorizontal, Bot, MessageSquare, Clock, Sparkles, Settings } from "lucide-react";
+'use client';
+import { PlusCircle, MoreHorizontal, Bot, MessageSquare, Clock, Sparkles, Settings, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function AsistentesPage() {
   const assistants = [
@@ -86,7 +90,32 @@ export default function AsistentesPage() {
                     <span>{assistant.messagesUsed} / {MAX_MESSAGES} mensajes</span>
                 </div>
                 <Progress value={(assistant.messagesUsed / MAX_MESSAGES) * 100} className="h-2" />
-                <div className="flex items-center justify-end text-xs text-muted-foreground">
+                <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 gap-1 text-sm">
+                          <ShieldCheck className="h-3.5 w-3.5" />
+                          <span className="sr-only sm:not-sr-only">Verificación</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Verificación del Asistente</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Ingresa el código de 6 caracteres que recibiste para verificar este asistente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="grid gap-2">
+                          <Label htmlFor="verification-code">Código de Verificación</Label>
+                          <Input id="verification-code" maxLength={6} placeholder="_ _ _ _ _ _" className="text-center tracking-[0.5em]" />
+                        </div>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction>Verificar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
