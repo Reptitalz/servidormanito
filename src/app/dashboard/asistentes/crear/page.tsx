@@ -293,36 +293,23 @@ export default function CreateAssistantPage() {
                                 <CardDescription>¿Cuál es el rol principal de tu asistente? Esto nos ayudará a pre-configurarlo.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Carousel
-                                    opts={{
-                                        align: "start",
-                                    }}
-                                    className="w-full"
-                                >
-                                    <CarouselContent>
-                                        {personalityOptions.map((option) => (
-                                            <CarouselItem key={option.id} className="md:basis-1/2">
-                                                <div className="p-1 h-full">
-                                                <Card 
-                                                    key={option.id}
-                                                    className={cn(
-                                                        "cursor-pointer hover:border-primary transition-colors h-full flex flex-col justify-center items-center text-center p-4",
-                                                        selectedPersonality === option.id && "border-primary ring-2 ring-primary"
-                                                    )}
-                                                    onClick={() => setSelectedPersonality(option.id)}
-                                                    >
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <option.icon className="h-8 w-8 text-primary" />
-                                                        <p className="font-semibold text-base">{option.title}</p>
-                                                    </div>
-                                                </Card>
-                                                </div>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious />
-                                    <CarouselNext />
-                                </Carousel>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {personalityOptions.map((option) => (
+                                        <Card 
+                                            key={option.id}
+                                            className={cn(
+                                                "cursor-pointer hover:border-primary transition-colors flex flex-col justify-center items-center text-center p-4",
+                                                selectedPersonality === option.id && "border-primary ring-2 ring-primary"
+                                            )}
+                                            onClick={() => setSelectedPersonality(option.id)}
+                                        >
+                                            <div className="flex flex-col items-center gap-2">
+                                                <option.icon className="h-8 w-8 text-primary" />
+                                                <p className="font-semibold text-base">{option.title}</p>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
                                  <div className="flex justify-between mt-6">
                                     <Button variant="outline" onClick={() => setCurrentStep(2)}>
                                         <ArrowLeft className="mr-2 h-4 w-4" />
@@ -348,3 +335,5 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
+    
