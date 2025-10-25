@@ -302,7 +302,7 @@ export default function CreateAssistantPage() {
                                     <CarouselContent>
                                         {personalityOptions.map((option) => (
                                             <CarouselItem key={option.id} className="md:basis-1/2">
-                                                <div className="p-1">
+                                                <div className="p-1 h-full">
                                                 <Card 
                                                     key={option.id}
                                                     className={cn(
