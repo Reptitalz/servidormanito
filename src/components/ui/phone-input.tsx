@@ -53,8 +53,8 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                 <span className="flex h-5 w-5 items-center">
                   <span
                     className={cn(
-                      'fi fis rounded-full',
-                      country.iso2.toLowerCase(),
+                      'fi rounded-sm',
+                      `fi-${country.iso2.toLowerCase()}`
                     )}
                   />
                 </span>
@@ -97,8 +97,8 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
                       <span className="flex h-5 w-5 items-center">
                         <span
                           className={cn(
-                            'fi fis rounded-full',
-                            country.iso2.toLowerCase(),
+                            'fi rounded-sm',
+                            `fi-${country.iso2.toLowerCase()}`
                           )}
                         />
                       </span>
@@ -129,3 +129,4 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   },
 );
 PhoneInput.displayName = 'PhoneInput';
+
