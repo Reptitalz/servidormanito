@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from "react";
-import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Briefcase, User, Heart, Bot as BotIcon } from "lucide-react";
+import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Briefcase, User, Heart, Bot as BotIcon, Phone, PhoneCall, PhoneOutgoing, MessageSquare, UserCheck, CreditCard, Receipt, Sheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { Phone } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const steps = [
     { name: "Nombre del Asistente", icon: Wand2 },
     { name: "Imagen de Perfil", icon: ImageIcon },
     { name: "Número de Teléfono", icon: Phone },
     { name: "Personalidad", icon: Fingerprint },
-    { name: "Conocimiento", icon: Milestone },
+    { name: "Habilidades", icon: Milestone },
 ];
 
 const personalityOptions = [
@@ -28,6 +28,17 @@ const personalityOptions = [
     { id: "personal", title: "Asistente Personal", description: "Organiza y gestiona tareas personales.", icon: User },
     { id: "custom", title: "Yo Mismo / Personalizado", description: "Configuración manual y avanzada.", icon: BotIcon },
 ]
+
+const skillOptions = [
+    { id: "receive-calls", label: "Recibir llamadas", icon: PhoneCall },
+    { id: "make-calls", label: "Hacer llamadas", icon: PhoneOutgoing },
+    { id: "send-messages", label: "Enviar mensajes a clientes", icon: MessageSquare },
+    { id: "recognize-owner", label: "Reconocer al dueño", icon: UserCheck },
+    { id: "payment-auth", label: "Autorizaciones de pagos", icon: CreditCard },
+    { id: "billing", label: "Cobranza", icon: Receipt },
+    { id: "google-sheet", label: "Inventario de Google Sheet", icon: Sheet },
+];
+
 
 const restrictedWords = ["whatsapp", "meta", "facebook", "oficial", "verified"];
 
@@ -58,6 +69,7 @@ export default function CreateAssistantPage() {
     const [assistantImage, setAssistantImage] = useState<string | null>(null);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [selectedPersonality, setSelectedPersonality] = useState<string | null>(null);
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
     const isNameValid = useMemo(() => assistantName.length > 2 && validationErrors.length === 0, [assistantName, validationErrors]);
 
@@ -86,11 +98,24 @@ export default function CreateAssistantPage() {
         }
     };
 
+    const handleSkillToggle = (skillId: string) => {
+        setSelectedSkills(prev => {
+            if (prev.includes(skillId)) {
+                return prev.filter(s => s !== skillId);
+            }
+            if (prev.length < 3) {
+                return [...prev, skillId];
+            }
+            return prev;
+        });
+    };
+
     const isStepComplete = (stepIndex: number) => {
         if (stepIndex === 0) return isNameValid;
         if (stepIndex === 1) return assistantImage !== null;
         if (stepIndex === 2) return phoneNumber.length > 8; // Simple validation for now
         if (stepIndex === 3) return selectedPersonality !== null;
+        if (stepIndex === 4) return selectedSkills.length > 0;
         return false;
     }
 
@@ -322,7 +347,55 @@ export default function CreateAssistantPage() {
                                         disabled={!isStepComplete(3)}
                                     >
                                         <span className="btn-shiny-content flex items-center">
-                                            Finalizar
+                                            Siguiente Paso
+                                            <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
+                                        </span>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                    {currentStep === 4 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Paso 5: Habilidades del Asistente</CardTitle>
+                                <CardDescription>Selecciona hasta 3 habilidades clave para tu bot. Esto definirá sus capacidades principales.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {skillOptions.map((skill) => (
+                                        <div key={skill.id} className="flex items-center space-x-3 bg-muted/50 p-3 rounded-md">
+                                            <Checkbox
+                                                id={skill.id}
+                                                checked={selectedSkills.includes(skill.id)}
+                                                onCheckedChange={() => handleSkillToggle(skill.id)}
+                                                disabled={!selectedSkills.includes(skill.id) && selectedSkills.length >= 3}
+                                            />
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <skill.icon className="h-5 w-5 text-primary" />
+                                                <Label htmlFor={skill.id} className="font-medium cursor-pointer">
+                                                    {skill.label}
+                                                </Label>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex justify-between mt-6">
+                                    <Button variant="outline" onClick={() => setCurrentStep(3)}>
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Anterior
+                                    </Button>
+                                    <Button
+                                        size="lg"
+                                        className="btn-shiny animated-gradient text-white font-bold"
+                                        onClick={() => {
+                                            // Final action
+                                            console.log("Assistant Created!");
+                                        }}
+                                        disabled={!isStepComplete(4)}
+                                    >
+                                        <span className="btn-shiny-content flex items-center">
+                                            Finalizar Creación
                                             <Check className="ml-2 h-4 w-4" />
                                         </span>
                                     </Button>
@@ -335,5 +408,3 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
-
-    
