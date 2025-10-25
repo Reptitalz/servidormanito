@@ -30,7 +30,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
       isInvalid,
       setCountry,
     } = usePhoneInput({
-      defaultCountry: defaultCountry,
+      defaultCountry: defaultCountry.toLowerCase(),
       value,
       onChange: (data) => {
         onChange(data.phone);
@@ -129,5 +129,3 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
   },
 );
 PhoneInput.displayName = 'PhoneInput';
-
-    
