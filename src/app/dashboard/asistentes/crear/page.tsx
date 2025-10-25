@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from "react";
-import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Upload } from "lucide-react";
+import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Upload, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import Image from "next/image";
 const steps = [
     { name: "Nombre del Asistente", icon: Wand2 },
     { name: "Imagen de Perfil", icon: ImageIcon },
+    { name: "Número de Teléfono", icon: Phone },
     { name: "Personalidad", icon: Fingerprint },
     { name: "Conocimiento", icon: Milestone },
 ];
@@ -45,6 +46,7 @@ export default function CreateAssistantPage() {
     const [assistantName, setAssistantName] = useState("");
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
     const [assistantImage, setAssistantImage] = useState<string | null>(null);
+    const [phoneNumber, setPhoneNumber] = useState("");
 
     const isNameValid = useMemo(() => assistantName.length > 2 && validationErrors.length === 0, [assistantName, validationErrors]);
 
@@ -76,6 +78,7 @@ export default function CreateAssistantPage() {
     const isStepComplete = (stepIndex: number) => {
         if (stepIndex === 0) return isNameValid;
         if (stepIndex === 1) return assistantImage !== null;
+        if (stepIndex === 2) return phoneNumber.length > 8; // Simple validation for now
         return false;
     }
 
@@ -106,8 +109,8 @@ export default function CreateAssistantPage() {
                                 onClick={() => setCurrentStep(index)}
                                 disabled={index > 0 && !isStepComplete(index - 1)}
                             >
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${currentStep > index ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                    {currentStep > index ? <Check className="h-4 w-4"/> : index + 1}
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${currentStep > index || isStepComplete(index) ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                    {currentStep > index || isStepComplete(index) ? <Check className="h-4 w-4"/> : index + 1}
                                 </div>
                                 <step.icon className="h-4 w-4" />
                                 <span>{step.name}</span>
@@ -230,14 +233,30 @@ export default function CreateAssistantPage() {
                         </Card>
                     )}
                     {currentStep === 2 && (
-                        <Card>
+                       <Card>
                             <CardHeader>
-                                <CardTitle>Paso 3: Personalidad</CardTitle>
-                                <CardDescription>Define cómo se comportará tu asistente.</CardDescription>
+                                <CardTitle>Paso 3: Número de Teléfono</CardTitle>
+                                <CardDescription>Define el número de teléfono que usará tu asistente.</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <p>Aquí configurarás la personalidad de tu bot.</p>
-                                 <div className="flex justify-between mt-6">
+                            <CardContent className="space-y-6">
+                                 <div className="space-y-2">
+                                    <Label htmlFor="phone-number">Número de Teléfono</Label>
+                                    <Input 
+                                      id="phone-number" 
+                                      type="tel"
+                                      placeholder="Ej: +52 55 1234 5678"
+                                      value={phoneNumber}
+                                      onChange={(e) => setPhoneNumber(e.target.value)}
+                                    />
+                                </div>
+                                <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground flex items-start gap-2">
+                                    <Info className="h-5 w-5 shrink-0 mt-0.5" />
+                                    <span>
+                                        Importante: El número de teléfono que utilices no debe tener una cuenta de WhatsApp o WhatsApp Business vinculada.
+                                    </span>
+                                </div>
+
+                                <div className="flex justify-between">
                                     <Button variant="outline" onClick={() => setCurrentStep(1)}>
                                         <ArrowLeft className="mr-2 h-4 w-4" />
                                         Anterior
@@ -245,7 +264,35 @@ export default function CreateAssistantPage() {
                                     <Button
                                         size="lg"
                                         className="btn-shiny animated-gradient text-white font-bold"
+                                        disabled={!isStepComplete(2)}
                                         onClick={() => setCurrentStep(3)}
+                                    >
+                                        <span className="btn-shiny-content flex items-center">
+                                            Siguiente Paso
+                                            <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
+                                        </span>
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+                     {currentStep === 3 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Paso 4: Personalidad</CardTitle>
+                                <CardDescription>Define cómo se comportará tu asistente.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p>Aquí configurarás la personalidad de tu bot.</p>
+                                 <div className="flex justify-between mt-6">
+                                    <Button variant="outline" onClick={() => setCurrentStep(2)}>
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Anterior
+                                    </Button>
+                                    <Button
+                                        size="lg"
+                                        className="btn-shiny animated-gradient text-white font-bold"
+                                        onClick={() => setCurrentStep(4)}
                                     >
                                         <span className="btn-shiny-content flex items-center">
                                             Siguiente Paso
@@ -261,5 +308,7 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
+    
 
     
