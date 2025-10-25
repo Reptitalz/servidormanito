@@ -2,7 +2,7 @@
 
 'use client';
 import { useState } from "react";
-import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -155,6 +155,11 @@ export default function AsistentesPage() {
                       <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
                         <Database className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only">Base de Datos</span>
+                      </Button>
+
+                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
+                        <Wand2 className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only">Habilidades</span>
                       </Button>
                     </div>
                 </div>
