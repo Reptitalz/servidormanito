@@ -1,7 +1,8 @@
 
 
 'use client';
-import { PlusCircle, MoreHorizontal, Bot, MessageSquare, Clock, Sparkles, Settings, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +14,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function AsistentesPage() {
-  const assistants = [
+  const allAssistants = [
     { name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas" },
     { name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer" },
     { name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos" },
+    { name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días" },
+    { name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada" },
+    { name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy" },
   ];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ASSISTANTS_PER_PAGE = 3;
+
+  const totalPages = Math.ceil(allAssistants.length / ASSISTANTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ASSISTANTS_PER_PAGE;
+  const endIndex = startIndex + ASSISTANTS_PER_PAGE;
+  const assistants = allAssistants.slice(startIndex, endIndex);
 
   const getBadgeVariant = (status: string) => {
     switch (status) {
@@ -134,6 +146,29 @@ export default function AsistentesPage() {
           </Card>
         ))}
       </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 pt-6">
+            <Button 
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+            >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+            >
+                Siguiente
+                <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+        </div>
+      )}
     </>
   );
 }
