@@ -15,12 +15,12 @@ import { Label } from "@/components/ui/label";
 
 export default function AsistentesPage() {
   const allAssistants = [
-    { name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true },
-    { name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "123456789", verified: false },
-    { name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "123456789", verified: true },
-    { name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "123456789", verified: false },
-    { name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "123456789", verified: false },
-    { name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "123456789", verified: true },
+    { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"] },
+    { id: "asst_2", name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "987654321", verified: false, skills: ["receive-calls", "recognize-owner"] },
+    { id: "asst_3", name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "112233445", verified: true, skills: ["send-messages"] },
+    { id: "asst_4", name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "223344556", verified: false, skills: ["send-messages", "recognize-owner"] },
+    { id: "asst_5", name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "334455667", verified: false, skills: ["send-messages"] },
+    { id: "asst_6", name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "445566778", verified: true, skills: ["payment-auth", "google-sheet"] },
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,7 +65,7 @@ export default function AsistentesPage() {
 
       <div className="grid gap-4 md:gap-6 pt-4">
         {assistants.map((assistant) => (
-          <Card key={assistant.name}>
+          <Card key={assistant.id}>
             <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 md:p-6">
               <div className="flex items-center gap-4">
                  <div className="p-3 bg-primary/10 rounded-full">
@@ -157,9 +157,11 @@ export default function AsistentesPage() {
                         <span className="sr-only sm:not-sr-only">Base de Datos</span>
                       </Button>
 
-                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
-                        <Wand2 className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only">Habilidades</span>
+                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
+                        <Link href={`/dashboard/asistentes/${assistant.id}/habilidades`}>
+                           <Wand2 className="h-3.5 w-3.5" />
+                           <span className="sr-only sm:not-sr-only">Habilidades</span>
+                        </Link>
                       </Button>
                     </div>
                 </div>
