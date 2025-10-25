@@ -306,22 +306,15 @@ export default function CreateAssistantPage() {
                                                 <Card 
                                                     key={option.id}
                                                     className={cn(
-                                                        "cursor-pointer hover:border-primary transition-colors h-full",
+                                                        "cursor-pointer hover:border-primary transition-colors h-full flex flex-col justify-center items-center text-center p-4",
                                                         selectedPersonality === option.id && "border-primary ring-2 ring-primary"
                                                     )}
                                                     onClick={() => setSelectedPersonality(option.id)}
                                                     >
-                                                    <CardHeader className="flex flex-row items-center gap-4">
-                                                        <div className="p-2 bg-primary/10 rounded-lg">
-                                                            <option.icon className="h-6 w-6 text-primary" />
-                                                        </div>
-                                                        <div>
-                                                            <CardTitle className="text-base">{option.title}</CardTitle>
-                                                        </div>
-                                                    </CardHeader>
-                                                    <CardContent>
-                                                        <p className="text-sm text-muted-foreground">{option.description}</p>
-                                                    </CardContent>
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <option.icon className="h-8 w-8 text-primary" />
+                                                        <p className="font-semibold text-base">{option.title}</p>
+                                                    </div>
                                                 </Card>
                                                 </div>
                                             </CarouselItem>
