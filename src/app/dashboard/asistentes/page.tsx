@@ -134,7 +134,7 @@ export default function AsistentesPage() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-
+                      
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
