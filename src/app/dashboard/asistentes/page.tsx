@@ -2,7 +2,7 @@
 
 'use client';
 import { useState } from "react";
-import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle, Wand2 } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle, Wand2, Sheet, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -145,10 +146,53 @@ export default function AsistentesPage() {
                         </Link>
                       </Button>
 
-                      <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
-                        <Database className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only">Base de Datos</span>
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
+                            <Database className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only">Base de Datos</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Configurar Base de Datos</DialogTitle>
+                            <DialogDescription>
+                              Elige el tipo de memoria para tu asistente. Puedes usar una hoja de cálculo de Google o una memoria inteligente.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center gap-3">
+                                        <Sheet className="h-6 w-6 text-primary"/>
+                                        <h3 className="text-lg font-semibold">Google Sheet</h3>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground mb-2">Pega la URL de tu Google Sheet para usarla como base de conocimiento.</p>
+                                    <Input placeholder="https://docs.google.com/spreadsheets/..." />
+                                </CardContent>
+                                <CardFooter>
+                                    <Button>Guardar URL</Button>
+                                </CardFooter>
+                            </Card>
+                             <Card>
+                                <CardHeader>
+                                    <div className="flex items-center gap-3">
+                                        <BrainCircuit className="h-6 w-6 text-primary"/>
+                                        <h3 className="text-lg font-semibold">Memoria Inteligente</h3>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-muted-foreground">Permite que el bot aprenda de las conversaciones y mejore con el tiempo.</p>
+                                </CardContent>
+                                <CardFooter>
+                                    <Button variant="secondary">Activar Memoria</Button>
+                                </CardFooter>
+                            </Card>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       
                       <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -163,7 +207,6 @@ export default function AsistentesPage() {
                             <DropdownMenuItem>Configurar horario</DropdownMenuItem>
                           </DropdownMenuContent>
                       </DropdownMenu>
-
                     </div>
                 </div>
             </CardContent>
