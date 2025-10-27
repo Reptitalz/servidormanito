@@ -109,7 +109,6 @@ export default function AsistentesPage() {
                             Editar
                          </DropdownMenuItem>
                        </DialogTrigger>
-                      <DropdownMenuItem>Duplicar</DropdownMenuItem>
                       <DropdownMenuItem>Ver Estadísticas</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
                         Eliminar
@@ -155,14 +154,14 @@ export default function AsistentesPage() {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-
-                           <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
+                          
+                          <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
                             <Link href={`/dashboard/asistentes/${assistant.id}/habilidades`}>
                               <Wand2 className="h-3.5 w-3.5" />
                               <span className="sr-only sm:not-sr-only">Habilidades</span>
                             </Link>
                           </Button>
-                          
+
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm">
@@ -328,3 +327,5 @@ export default function AsistentesPage() {
     </>
   );
 }
+
+    
