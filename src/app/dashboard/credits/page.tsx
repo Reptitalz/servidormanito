@@ -56,22 +56,23 @@ export default function CreditsPage() {
                                     </span>
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-2xl">
-                                <DialogHeader>
-                                    <DialogTitle>Elige tu Plan</DialogTitle>
+                            <DialogContent className="w-screen h-screen max-w-none sm:rounded-none flex flex-col">
+                                <DialogHeader className="text-center pt-8">
+                                    <DialogTitle className="text-3xl">Elige tu Plan</DialogTitle>
                                     <DialogDescription>
                                         Selecciona el plan que mejor se adapte a tus necesidades.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="py-4">
+                                <div className="flex-1 flex items-center justify-center py-4">
                                    <Carousel
                                         opts={{
-                                            align: "start",
+                                            align: "center",
+                                            loop: true,
                                         }}
-                                        className="w-full"
+                                        className="w-full max-w-md"
                                     >
                                         <CarouselContent>
-                                            <CarouselItem className="md:basis-1/2">
+                                            <CarouselItem className="md:basis-1/2 lg:basis-full">
                                                 <div className="p-1 h-full">
                                                     <Card className="h-full flex flex-col">
                                                         <CardHeader>
@@ -95,7 +96,7 @@ export default function CreditsPage() {
                                                     </Card>
                                                 </div>
                                             </CarouselItem>
-                                            <CarouselItem className="md:basis-1/2">
+                                            <CarouselItem className="md:basis-1/2 lg:basis-full">
                                                 <div className="p-1 h-full">
                                                     <Card className="border-primary border-2 relative shadow-lg h-full flex flex-col">
                                                         <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>
