@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard } from "lucide-react";
+import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard, Target } from "lucide-react";
 import { useSwipeable } from 'react-swipeable';
 
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ interface SimulatedUser {
 const navLinks = [
   { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
   { href: "/dashboard/asistentes", demoHref: "/dashboarddemo/asistentes", label: "Asistentes", icon: Bot },
-  { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Clientes", icon: Users },
+  { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Gestor", icon: Target },
   { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
 ];
 
