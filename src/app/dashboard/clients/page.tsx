@@ -1,17 +1,17 @@
 
 'use client'
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, FilePlus2, MoreHorizontal, PlusCircle } from "lucide-react";
+import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, FilePlus2, MoreHorizontal, PlusCircle, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const managementSections = [
     { id: "clients", href: "/dashboard/clients", label: "Clientes", icon: Users },
@@ -123,10 +123,7 @@ const ClientsContent = () => (
 export default function GestorPage() {
     const pathname = usePathname();
     const router = useRouter();
-
-    const handleNavigation = (value: string) => {
-        router.push(value);
-    };
+    const section = managementSections.find(s => s.href === pathname);
 
     return (
         <>
@@ -139,21 +136,46 @@ export default function GestorPage() {
 
             {/* Mobile navigation */}
             <div className="md:hidden pt-4">
-                <Select value={pathname} onValueChange={handleNavigation}>
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar sección" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {managementSections.map(navSection => (
-                            <SelectItem key={`mobile-${navSection.id}`} value={navSection.href}>
-                                <div className="flex items-center gap-2">
-                                    <navSection.icon className="h-4 w-4" />
-                                    <span>{navSection.label}</span>
-                                </div>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                            <span>{section?.label || "Seleccionar sección"}</span>
+                            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="h-[90%]">
+                        <SheetHeader>
+                            <SheetTitle>Navegar a</SheetTitle>
+                        </SheetHeader>
+                        <div className="py-4">
+                            <Carousel
+                                opts={{
+                                    align: "start",
+                                    dragFree: true,
+                                }}
+                                className="w-full"
+                            >
+                                <CarouselContent>
+                                    {managementSections.map((navSection, index) => (
+                                        <CarouselItem key={index} className="basis-1/2 sm:basis-1/3">
+                                            <div className="p-1">
+                                                <Link href={navSection.href}>
+                                                    <Card className={cn(
+                                                        "flex flex-col items-center justify-center p-4 h-40",
+                                                        pathname === navSection.href ? "border-primary ring-2 ring-primary" : ""
+                                                    )}>
+                                                        <navSection.icon className="h-8 w-8 text-primary mb-2" />
+                                                        <p className="text-sm font-semibold text-center">{navSection.label}</p>
+                                                    </Card>
+                                                </Link>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                            </Carousel>
+                        </div>
+                    </SheetContent>
+                </Sheet>
             </div>
 
             <div className="grid md:grid-cols-4 gap-8 pt-4">
