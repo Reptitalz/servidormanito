@@ -1,3 +1,4 @@
+
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, MessageSquare, Zap, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -126,30 +127,32 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-sm mx-auto lg:max-w-none">
             {plans.map((plan) => (
-              <Card key={plan.name} className={plan.popular ? "border-primary border-2 relative shadow-2xl" : "shadow-md"}>
-                {plan.popular && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Más Popular</Badge>}
-                <CardHeader>
-                  <CardTitle className="font-headline">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="pt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full" variant={plan.popular ? "default" : "outline"}>{plan.cta}</Button>
-                </CardFooter>
-              </Card>
+              <div key={plan.name} className="pt-6">
+                <Card className={plan.popular ? "border-primary border-2 relative shadow-2xl" : "shadow-md"}>
+                  {plan.popular && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Más Popular</Badge>}
+                  <CardHeader>
+                    <CardTitle className="font-headline">{plan.name}</CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                    <div className="pt-4">
+                      <span className="text-4xl font-bold">{plan.price}</span>
+                      <span className="text-muted-foreground">{plan.period}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" variant={plan.popular ? "default" : "outline"}>{plan.cta}</Button>
+                  </CardFooter>
+                </Card>
+              </div>
             ))}
           </div>
         </div>

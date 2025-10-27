@@ -73,7 +73,7 @@ export default function CreditsPage() {
                                     >
                                         <CarouselContent>
                                             <CarouselItem className="md:basis-1/2 lg:basis-full">
-                                                <div className="p-1 h-full">
+                                                <div className="p-1 h-full pt-4">
                                                     <Card className="h-full flex flex-col">
                                                         <CardHeader>
                                                             <CardTitle className="font-headline">Gratuito</CardTitle>
@@ -97,7 +97,7 @@ export default function CreditsPage() {
                                                 </div>
                                             </CarouselItem>
                                             <CarouselItem className="md:basis-1/2 lg:basis-full">
-                                                <div className="p-1 h-full">
+                                                <div className="p-1 h-full pt-4">
                                                     <Card className="border-primary border-2 relative shadow-lg h-full flex flex-col">
                                                         <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>
                                                         <CardHeader>
