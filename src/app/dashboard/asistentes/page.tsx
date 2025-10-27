@@ -17,12 +17,12 @@ import Image from "next/image";
 
 export default function AsistentesPage() {
   const allAssistants = [
-    { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"], messageLimit: 1000, image: "/placeholder-images/bot-avatar-1.png" },
-    { id: "asst_2", name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "987654321", verified: false, skills: ["receive-calls", "recognize-owner"], messageLimit: 1000, image: "/placeholder-images/bot-avatar-2.png" },
-    { id: "asst_3", name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "112233445", verified: true, skills: ["send-messages"], messageLimit: 1000, image: "/placeholder-images/bot-avatar-3.png" },
-    { id: "asst_4", name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "223344556", verified: false, skills: ["send-messages", "recognize-owner"], messageLimit: 1000, image: "/placeholder-images/bot-avatar-4.png" },
-    { id: "asst_5", name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "334455667", verified: false, skills: ["send-messages"], messageLimit: 5000, image: "/placeholder-images/bot-avatar-5.png" },
-    { id: "asst_6", name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "445566778", verified: true, skills: ["payment-auth", "google-sheet"], messageLimit: 2000, image: "/placeholder-images/bot-avatar-6.png" },
+    { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_1/200/200" },
+    { id: "asst_2", name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "987654321", verified: false, skills: ["receive-calls", "recognize-owner"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_2/200/200" },
+    { id: "asst_3", name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "112233445", verified: true, skills: ["send-messages"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_3/200/200" },
+    { id: "asst_4", name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "223344556", verified: false, skills: ["send-messages", "recognize-owner"], messageLimit: 1000, image: "" },
+    { id: "asst_5", name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "334455667", verified: false, skills: ["send-messages"], messageLimit: 5000, image: "https://picsum.photos/seed/asst_5/200/200" },
+    { id: "asst_6", name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "445566778", verified: true, skills: ["payment-auth", "google-sheet"], messageLimit: 2000, image: "" },
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,6 +49,7 @@ export default function AsistentesPage() {
   
   const TOTAL_CREDITS = 100; // 100k messages
   const MAX_MESSAGES = TOTAL_CREDITS * 1000;
+  const defaultBotImage = "https://picsum.photos/seed/robot/200/200";
 
   return (
     <>
@@ -74,7 +75,14 @@ export default function AsistentesPage() {
                 <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 md:p-6">
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                        <Image src={assistant.image || "/placeholder.svg"} alt={assistant.name} width={48} height={48} className="rounded-full border" />
+                        <Image 
+                          src={assistant.image || defaultBotImage} 
+                          alt={assistant.name} 
+                          width={48} 
+                          height={48} 
+                          className="rounded-full border" 
+                          data-ai-hint="robot avatar"
+                        />
                     </div>
                     <div>
                         <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -148,7 +156,7 @@ export default function AsistentesPage() {
                             </AlertDialogContent>
                           </AlertDialog>
 
-                          <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
+                           <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
                             <Link href={`/dashboard/asistentes/${assistant.id}/habilidades`}>
                               <Wand2 className="h-3.5 w-3.5" />
                               <span className="sr-only sm:not-sr-only">Habilidades</span>
@@ -273,7 +281,14 @@ export default function AsistentesPage() {
                         <div className="space-y-2">
                            <Label>Imagen de Perfil</Label>
                            <div className="flex items-center gap-4">
-                                <Image src={assistant.image || "/placeholder.svg"} alt="Avatar actual" width={64} height={64} className="rounded-full" />
+                                <Image 
+                                  src={assistant.image || defaultBotImage} 
+                                  alt="Avatar actual" 
+                                  width={64} 
+                                  height={64} 
+                                  className="rounded-full" 
+                                  data-ai-hint="robot avatar"
+                                />
                                 <Input id="picture-edit" type="file" accept="image/png, image/jpeg" className="flex-1" />
                            </div>
                         </div>
@@ -313,5 +328,3 @@ export default function AsistentesPage() {
     </>
   );
 }
-
-    
