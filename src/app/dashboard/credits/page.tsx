@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function CreditsPage() {
     const usage = {
@@ -55,56 +56,75 @@ export default function CreditsPage() {
                                     </span>
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-4xl">
+                            <DialogContent className="sm:max-w-2xl">
                                 <DialogHeader>
                                     <DialogTitle>Elige tu Plan</DialogTitle>
                                     <DialogDescription>
                                         Selecciona el plan que mejor se adapte a tus necesidades.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="font-headline">Gratuito</CardTitle>
-                                            <CardDescription>Para empezar a explorar.</CardDescription>
-                                            <div className="pt-4">
-                                                <span className="text-4xl font-bold">$0</span>
-                                                <span className="text-muted-foreground">/mes</span>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <ul className="space-y-3">
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>500 Mensajes/mes</span></li>
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>1 Asistente</span></li>
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Básico</span></li>
-                                            </ul>
-                                        </CardContent>
-                                        <CardFooter>
-                                            <Button className="w-full" variant="secondary" disabled>Plan Actual</Button>
-                                        </CardFooter>
-                                    </Card>
-                                    <Card className="border-primary border-2 relative shadow-lg">
-                                         <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>
-                                        <CardHeader>
-                                            <CardTitle className="font-headline">Manito Pro</CardTitle>
-                                            <CardDescription>Para negocios en crecimiento.</CardDescription>
-                                            <div className="pt-4">
-                                                <span className="text-4xl font-bold">$45</span>
-                                                <span className="text-muted-foreground">/mes</span>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <ul className="space-y-3">
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>5,000 Mensajes/mes</span></li>
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>3 Asistentes</span></li>
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Integraciones y API</span></li>
-                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Prioritario</span></li>
-                                            </ul>
-                                        </CardContent>
-                                        <CardFooter>
-                                            <Button className="w-full">Mejorar a Pro</Button>
-                                        </CardFooter>
-                                    </Card>
+                                <div className="py-4">
+                                   <Carousel
+                                        opts={{
+                                            align: "start",
+                                        }}
+                                        className="w-full"
+                                    >
+                                        <CarouselContent>
+                                            <CarouselItem className="md:basis-1/2">
+                                                <div className="p-1 h-full">
+                                                    <Card className="h-full flex flex-col">
+                                                        <CardHeader>
+                                                            <CardTitle className="font-headline">Gratuito</CardTitle>
+                                                            <CardDescription>Para empezar a explorar.</CardDescription>
+                                                            <div className="pt-4">
+                                                                <span className="text-4xl font-bold">$0</span>
+                                                                <span className="text-muted-foreground">/mes</span>
+                                                            </div>
+                                                        </CardHeader>
+                                                        <CardContent className="flex-1">
+                                                            <ul className="space-y-3">
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>500 Mensajes/mes</span></li>
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>1 Asistente</span></li>
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Básico</span></li>
+                                                            </ul>
+                                                        </CardContent>
+                                                        <CardFooter>
+                                                            <Button className="w-full" variant="secondary" disabled>Plan Actual</Button>
+                                                        </CardFooter>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                            <CarouselItem className="md:basis-1/2">
+                                                <div className="p-1 h-full">
+                                                    <Card className="border-primary border-2 relative shadow-lg h-full flex flex-col">
+                                                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>
+                                                        <CardHeader>
+                                                            <CardTitle className="font-headline">Manito Pro</CardTitle>
+                                                            <CardDescription>Para negocios en crecimiento.</CardDescription>
+                                                            <div className="pt-4">
+                                                                <span className="text-4xl font-bold">$45</span>
+                                                                <span className="text-muted-foreground">/mes</span>
+                                                            </div>
+                                                        </CardHeader>
+                                                        <CardContent className="flex-1">
+                                                            <ul className="space-y-3">
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>5,000 Mensajes/mes</span></li>
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>3 Asistentes</span></li>
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Integraciones y API</span></li>
+                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Prioritario</span></li>
+                                                            </ul>
+                                                        </CardContent>
+                                                        <CardFooter>
+                                                            <Button className="w-full">Mejorar a Pro</Button>
+                                                        </CardFooter>
+                                                    </Card>
+                                                </div>
+                                            </CarouselItem>
+                                        </CarouselContent>
+                                        <CarouselPrevious />
+                                        <CarouselNext />
+                                    </Carousel>
                                 </div>
                             </DialogContent>
                         </Dialog>
