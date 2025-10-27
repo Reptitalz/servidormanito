@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, FilePlus2, MoreHorizontal, PlusCircle, ChevronsUpDown } from "lucide-react";
+import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, FilePlus2, MoreHorizontal, PlusCircle, ChevronsUpDown, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,6 +19,7 @@ const managementSections = [
     { id: "sales", href: "/dashboard/sales", label: "Ventas", icon: ShoppingCart },
     { id: "payments", href: "/dashboard/payments", label: "Pagos", icon: CreditCard },
     { id: "images", href: "/dashboard/images", label: "Imágenes", icon: ImageIcon },
+    { id: "database", href: "/dashboard/database", label: "Base de Datos", icon: Database },
 ];
 
 const clients = [

@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, ChevronsUpDown } from "lucide-react";
+import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, ChevronsUpDown, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ const managementSections = [
     { id: "sales", href: "/dashboard/sales", label: "Ventas", icon: ShoppingCart },
     { id: "payments", href: "/dashboard/payments", label: "Pagos", icon: CreditCard },
     { id: "images", href: "/dashboard/images", label: "Imágenes", icon: ImageIcon },
+    { id: "database", href: "/dashboard/database", label: "Base de Datos", icon: Database },
 ];
 
 const PlaceholderContent = ({ section }: { section: { label: string, icon: React.ElementType }}) => (

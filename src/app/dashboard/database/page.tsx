@@ -36,7 +36,7 @@ const PlaceholderContent = ({ section }: { section: { label: string, icon: React
     </Card>
 );
 
-export default function PaymentsPage() {
+export default function DatabasePage() {
     const pathname = usePathname();
     const router = useRouter();
     const section = managementSections.find(s => s.href === pathname);
@@ -49,7 +49,7 @@ export default function PaymentsPage() {
                     <p className="text-sm text-muted-foreground">Administra clientes, ventas, pagos y más desde un solo lugar.</p>
                 </div>
             </div>
-            
+
             {/* Mobile navigation */}
             <div className="md:hidden pt-4">
                 <Sheet>
