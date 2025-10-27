@@ -204,7 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               {desktopNavLinks.map(link => (
-                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'}`}>
+                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
                     {link.badge > 0 && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{link.badge}</Badge>}
