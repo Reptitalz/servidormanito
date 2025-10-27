@@ -1,3 +1,4 @@
+
 import { Users, ShieldCheck, ShoppingCart, CreditCard, Image, FilePlus2, MoreHorizontal, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,9 +44,9 @@ export default function GestorPage() {
             </div>
 
             <Tabs defaultValue="clients" className="pt-4">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
+                <TabsList>
                     {managementSections.map(section => (
-                        <TabsTrigger key={section.id} value={section.id} className="flex-col sm:flex-row gap-2 h-auto py-2">
+                        <TabsTrigger key={section.id} value={section.id} className="gap-2">
                             <section.icon className="h-5 w-5" />
                             <span>{section.label}</span>
                         </TabsTrigger>
