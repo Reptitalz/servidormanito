@@ -1,3 +1,4 @@
+
 "use client"
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
@@ -64,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { toast } = useToast();
 
   const isDemo = pathname.startsWith('/dashboarddemo');
-  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades');
+  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades') || pathname.includes('/conectar');
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleSwipe(1),
@@ -175,9 +176,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }));
 
   if (isSpecialPage) {
+    // For pages like 'create', 'habilidades', or 'conectar', we render a simpler layout
+    // without the main sidebar and header.
+    const containerClasses = cn(
+        "flex flex-col min-h-screen",
+        pathname.includes('/conectar') ? "items-center justify-center bg-muted/40" : "bg-secondary/40"
+    );
+
+    const mainClasses = cn(
+        "flex flex-1 flex-col",
+        !pathname.includes('/conectar') && "gap-4 p-4 lg:gap-6 lg:p-6"
+    );
+
     return (
-        <div className="flex flex-col min-h-screen bg-secondary/40">
-             <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+        <div className={containerClasses}>
+             <main className={mainClasses}>
                 {children}
              </main>
         </div>
@@ -255,8 +268,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{getDisplayName()}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Ajustes</DropdownMenuItem>
-              <DropdownMenuItem>Soporte</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(user.isAnonymous ? '/dashboarddemo' : '/dashboard')}>
+                <Bot className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>Cerrar sesión</DropdownMenuItem>
             </DropdownMenuContent>
@@ -270,3 +285,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+
+    

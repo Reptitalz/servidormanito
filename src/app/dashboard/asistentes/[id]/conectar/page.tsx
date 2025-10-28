@@ -62,7 +62,7 @@ export default function ConectarPage() {
     }, [router, status]);
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/40">
+        <div className="flex items-center justify-center">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <div className="flex items-center gap-4">
@@ -105,3 +105,5 @@ export default function ConectarPage() {
         </div>
     );
 }
+
+    
