@@ -49,6 +49,7 @@ async function connectToWhatsApp() {
                  try {
                     // Limpiar el QR en el frontend cuando la sesión se cierra permanentemente
                     await axios.post(NEXTJS_QR_URL, { qr: null });
+                    logger.info('QR limpiado en el frontend debido a cierre de sesión.');
                 } catch (error) {
                     logger.error('Error limpiando el QR en el frontend:', error.message);
                 }
@@ -58,6 +59,7 @@ async function connectToWhatsApp() {
              try {
                 // Limpiar el QR en el frontend una vez conectado
                 await axios.post(NEXTJS_QR_URL, { qr: null });
+                logger.info('Conexión exitosa, QR limpiado en el frontend.');
             } catch (error) {
                 logger.error('Error limpiando el QR en el frontend:', error.message);
             }
