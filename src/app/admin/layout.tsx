@@ -161,6 +161,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
+                    </SheetHeader>
                     <nav className="grid gap-6 text-lg font-medium">
                         <Link href="/" className="flex items-center gap-2 text-lg font-semibold font-headline mb-4 -rotate-6">
                              <Bot className="h-6 w-6 text-primary" />
