@@ -90,7 +90,6 @@ export default function AsistentesPage() {
                     <div>
                         <CardTitle className="text-lg font-semibold flex items-center gap-2">
                           {assistant.name}
-                          {assistant.verified && <CheckCircle className="h-5 w-5 text-green-500" />}
                         </CardTitle>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
                             <Badge variant={getBadgeVariant(assistant.status)} className="py-1 px-2 text-xs">{assistant.status}</Badge>
@@ -158,30 +157,6 @@ export default function AsistentesPage() {
                                <span className="sr-only sm:not-sr-only">Conectar</span>
                              </Link>
                            </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-7 gap-1 text-sm">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only">Verificación</span>
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Verificación del Asistente</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Ingresa el código de 6 caracteres que recibiste para verificar este asistente.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <div className="grid gap-2">
-                                <Label htmlFor="verification-code">Código de Verificación</Label>
-                                <Input id="verification-code" maxLength={6} placeholder="_ _ _ _ _ _" className="text-center tracking-[0.5em]" />
-                              </div>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction>Verificar</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                           
                           <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm" asChild>
                             <Link href={`/dashboard/asistentes/${assistant.id}/habilidades`}>
