@@ -26,27 +26,20 @@ interface SimulatedUser {
 }
 
 const navLinks = [
-  { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
-  { href: "/dashboard/asistentes", demoHref: "/dashboarddemo/asistentes", label: "Asistentes", icon: Bot },
-  { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Gestor", icon: Target },
-  { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
-  { href: "/admin/monitor", demoHref: "/admin/monitor", label: "Monitor", icon: BrainCircuit, admin: true },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit, admin: true },
 ];
 
-const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
+const MobileBottomNav = () => {
     const pathname = usePathname();
-    const isDemo = pathname.startsWith('/dashboarddemo');
-
-    if (isSpecialPage) return null;
-
+    
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
-            <nav className="grid grid-cols-4 items-center justify-around h-16">
-                {navLinks.filter(l => !l.admin).map(link => {
-                    const href = isDemo && ['/dashboard', '/dashboard/asistentes'].includes(link.href) ? link.demoHref : link.href;
-                    const isActive = pathname === href;
+            <nav className="grid grid-cols-2 items-center justify-around h-16">
+                {navLinks.map(link => {
+                    const isActive = pathname === link.href;
                     return (
-                        <Link key={`${href}-${link.label}-mobile`} href={href} className={`flex flex-col items-center justify-center gap-1 transition-colors h-full ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+                        <Link key={`${link.href}-${link.label}-mobile`} href={link.href} className={`flex flex-col items-center justify-center gap-1 transition-colors h-full ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
                             <link.icon className="h-5 w-5" />
                             <span className="text-xs font-medium">{link.label}</span>
                         </Link>
@@ -58,74 +51,24 @@ const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
 };
 
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SimulatedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
-
-  const isDemo = pathname.startsWith('/dashboarddemo');
-  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades') || pathname.includes('/conectar');
-
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => handleSwipe(1),
-    onSwipedRight: () => handleSwipe(-1),
-    preventScrollOnSwipe: true,
-    trackMouse: true
-  });
-
-  const handleSwipe = (direction: number) => {
-    if (isSpecialPage) return; // Disable swipe on create page
-    const currentPath = pathname;
-    const isDemo = currentPath.startsWith('/dashboarddemo');
-    const relevantLinks = navLinks.map(l => isDemo && l.demoHref ? l.demoHref : l.href);
-    const currentIndex = relevantLinks.indexOf(currentPath);
-
-    if (currentIndex !== -1) {
-        const nextIndex = currentIndex + direction;
-        if (nextIndex >= 0 && nextIndex < relevantLinks.length) {
-            router.push(relevantLinks[nextIndex]);
-        }
-    }
-  };
   
   useEffect(() => {
     // Simulate auth state change
     setLoading(true);
-    // This logic determines if we should be in a "logged in" or "guest" state
-    // For this simulation, any dashboard access is considered "logged in" in some capacity.
-    // The demo route specifically handles the guest/demo experience.
-    
-    if (isDemo) {
-      // Simulate guest user
-      setUser({
-        uid: 'guest-123',
-        isAnonymous: true,
-        displayName: 'Invitado',
-        email: 'guest@example.com',
-        photoURL: null,
-      });
-      if(pathname === '/dashboarddemo'){
-        toast({
-            title: "Modo Demostración",
-            description: "Estás viendo una versión de demostración. Inicia sesión para guardar tu trabajo.",
-        });
-      }
-    } else {
-       // Simulate a logged-in user for the main dashboard
-       setUser({
-        uid: 'user-123',
-        isAnonymous: false,
-        displayName: 'Demo User',
-        email: 'user@example.com',
-        photoURL: `https://i.pravatar.cc/150?u=demo-user`,
-      });
-    }
-    
+    setUser({
+      uid: 'admin-user-123',
+      isAnonymous: false,
+      displayName: 'Admin User',
+      email: 'admin@example.com',
+      photoURL: `https://i.pravatar.cc/150?u=admin-user`,
+    });
     setLoading(false);
-
-  }, [pathname, toast, isDemo, router]);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     setUser(null);
@@ -133,8 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const getInitials = (name?: string | null) => {
-    if (user?.isAnonymous) return 'G';
-    if (!name) return 'U';
+    if (!name) return 'A';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
@@ -143,7 +85,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
   
   const getDisplayEmail = () => {
-     if (user?.isAnonymous) return 'Explorando como invitado';
      return user?.email;
   };
 
@@ -170,34 +111,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return loadingSkeleton;
   }
   
-  const desktopNavLinks = navLinks.map(link => ({
-    ...link,
-    href: isDemo && ['/dashboard', '/dashboard/asistentes'].includes(link.href) ? link.demoHref : link.href,
-    badge: (link.href === '/dashboard/asistentes' ? (isDemo ? 4 : 3) : 0),
-  }));
-
-  if (isSpecialPage) {
-    // For pages like 'create', 'habilidades', or 'conectar', we render a simpler layout
-    // without the main sidebar and header.
-    const containerClasses = cn(
-        "flex flex-col min-h-screen",
-        pathname.includes('/conectar') ? "items-center justify-center bg-muted/40" : "bg-secondary/40"
-    );
-
-    const mainClasses = cn(
-        "flex flex-1 flex-col",
-        !pathname.includes('/conectar') && "gap-4 p-4 lg:gap-6 lg:p-6"
-    );
-
-    return (
-        <div className={containerClasses}>
-             <main className={mainClasses}>
-                {children}
-             </main>
-        </div>
-    );
-  }
-
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -217,35 +130,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {desktopNavLinks.map(link => {
-                // For a real admin user, you'd have a check like `user.isAdmin`
-                 const isAdmin = !user.isAnonymous; // Simulated admin
-                 if (link.admin && !isAdmin) return null;
-
-                 return(
+              {navLinks.map(link => (
                  <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname.startsWith(link.href) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
-                    {link.badge > 0 && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{link.badge}</Badge>}
                  </Link>
-                 )
-              })}
+              ))}
+               <Link href="/dashboard" className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
+                <Users className="h-4 w-4" />
+                <span>Client View</span>
+              </Link>
             </nav>
-          </div>
-          <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle>Comprar Créditos</CardTitle>
-                <CardDescription>
-                  1 crédito equivale a 1000 mensajes. ¡Recarga ahora!
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full" asChild>
-                  <Link href="/dashboard/credits">Comprar</Link>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
@@ -259,7 +154,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </Link>
           <div className="w-full flex-1 md:hidden">
-            {/* Can be used for mobile header content */}
+             <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                    <nav className="grid gap-6 text-lg font-medium">
+                        <Link href="/" className="flex items-center gap-2 text-lg font-semibold font-headline mb-4 -rotate-6">
+                             <Bot className="h-6 w-6 text-primary" />
+                              <div className="flex flex-col text-lg leading-none">
+                                <span>Hey</span>
+                                <span className='text-base'>Manito!</span>
+                              </div>
+                        </Link>
+                        {navLinks.map(link => (
+                            <Link key={link.href} href={link.href} className={`flex items-center gap-4 px-2.5 ${pathname.startsWith(link.href) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                <link.icon className="h-5 w-5" />
+                                {link.label}
+                            </Link>
+                        ))}
+                         <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
+                            <Users className="h-5 w-5" />
+                            Client View
+                         </Link>
+                    </nav>
+                </SheetContent>
+            </Sheet>
           </div>
           
           <DropdownMenu>
@@ -275,7 +197,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{getDisplayName()}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push(user.isAnonymous ? '/dashboarddemo' : '/dashboard')}>
+              <DropdownMenuItem onClick={() => router.push('/dashboard')}>
                 <Bot className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </DropdownMenuItem>
@@ -284,10 +206,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main {...swipeHandlers} className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40 pb-20 md:pb-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40 pb-20 md:pb-6">
           {children}
         </main>
-        <MobileBottomNav isSpecialPage={isSpecialPage} />
+        <MobileBottomNav />
       </div>
     </div>
   );
