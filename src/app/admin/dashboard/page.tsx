@@ -1,7 +1,8 @@
 
-import { BrainCircuit, ArrowRight } from "lucide-react";
+import { BrainCircuit, ArrowRight, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 
 export default function AdminDashboardPage() {
@@ -12,7 +13,13 @@ export default function AdminDashboardPage() {
       total: 3,
       lastActivity: "Ahora mismo"
     },
+    memory: {
+        used: 256, // in MB
+        total: 1024 // in MB (1 GB)
+    }
   };
+
+  const memoryPercentage = (summaryData.memory.used / summaryData.memory.total) * 100;
 
   return (
     <>
@@ -35,6 +42,21 @@ export default function AdminDashboardPage() {
             <Button asChild size="sm" className="mt-4 w-full">
               <Link href="/admin/monitor">
                 Ir al Monitor <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Uso de Memoria</CardTitle>
+            <Database className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summaryData.memory.used} MB / 1 GB</div>
+            <Progress value={memoryPercentage} className="mt-2 h-2" />
+            <Button asChild size="sm" variant="secondary" className="mt-4 w-full">
+              <Link href="/admin/memory">
+                Gestionar Memoria <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardContent>
