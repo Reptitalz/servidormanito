@@ -2,12 +2,13 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Bot, MessageSquare, Mic, AudioLines, BrainCircuit, Check, X, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type ProcessStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
 type ProcessStep = {
@@ -39,27 +40,43 @@ const processTemplates: Omit<ProcessStep, 'id' | 'status' | 'log'>[] = [
     { name: "Enviando respuesta...", icon: MessageSquare },
 ];
 
-// Component for the circular status indicator
-const StatusIndicator = ({ status }: { status: ProcessStatus }) => {
-    const baseClasses = "flex items-center justify-center h-8 w-8 rounded-full text-white";
+// Component for the circular status indicator with icon
+const StatusIcon = ({ status, icon: Icon }: { status: ProcessStatus, icon: React.ElementType }) => {
+    const baseClasses = "flex items-center justify-center h-10 w-10 rounded-full text-white transition-all transform hover:scale-110";
     
     if (status === 'in_progress') {
         return (
-            <div className={cn(baseClasses, "bg-blue-500")}>
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+            <div className={cn(baseClasses, "bg-blue-500 relative")}>
+                <Icon className="h-5 w-5 z-10" />
+                <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping"></div>
             </div>
         );
     }
     if (status === 'completed') {
-        return <div className={cn(baseClasses, "bg-green-500")}><Check className="h-5 w-5" /></div>;
+        return (
+            <div className={cn(baseClasses, "bg-green-500")}>
+                <Icon className="h-5 w-5" />
+                 <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white flex items-center justify-center">
+                    <Check className="h-3 w-3 text-green-600"/>
+                </div>
+            </div>
+        );
     }
     if (status === 'failed') {
-        return <div className={cn(baseClasses, "bg-destructive")}><X className="h-5 w-5" /></div>;
+        return (
+            <div className={cn(baseClasses, "bg-destructive")}>
+                 <Icon className="h-5 w-5" />
+                 <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white flex items-center justify-center">
+                    <X className="h-3 w-3 text-destructive"/>
+                </div>
+            </div>
+        );
     }
-    return <div className={cn(baseClasses, "bg-gray-400")}></div>;
+    return (
+        <div className={cn(baseClasses, "bg-gray-400")}>
+            <Icon className="h-5 w-5" />
+        </div>
+    );
 };
 
 export default function MonitorPage() {
@@ -74,44 +91,46 @@ export default function MonitorPage() {
                 
                 return prevActivities.map((activity, index) => {
                     if (index === randomAssistantIndex) {
-                        const newProcessId = activity.processes.length;
+                         const currentProcesses = [...activity.processes];
 
-                        // If it's the start of a new chain or the last one completed
-                        if (newProcessId === 0 || activity.processes[newProcessId - 1].status === 'completed' || activity.processes[newProcessId - 1].status === 'failed') {
+                        // If it's the start of a new chain or the last one completed/failed, reset and start over
+                        if (currentProcesses.length === 0 || 
+                            currentProcesses[currentProcesses.length - 1].status === 'completed' || 
+                            currentProcesses[currentProcesses.length - 1].status === 'failed') {
+                            
                             const newProcess: ProcessStep = {
                                 ...processTemplates[0],
-                                id: newProcessId,
+                                id: 0, // Reset id
                                 status: 'in_progress',
                                 log: "Recibiendo paquete de audio..."
                             };
-                            return { ...activity, lastActivity: "Ahora mismo", processes: [...activity.processes, newProcess] };
+                            return { ...activity, lastActivity: "Ahora mismo", processes: [newProcess] };
                         }
                         
                         // If there's a process in progress, advance it
-                        const currentProcessIndex = activity.processes.findIndex(p => p.status === 'in_progress');
+                        const currentProcessIndex = currentProcesses.findIndex(p => p.status === 'in_progress');
                         if (currentProcessIndex !== -1) {
                              const shouldFail = Math.random() < 0.05; // 5% chance to fail
-                             const updatedProcesses = [...activity.processes];
 
                              // Complete current step
-                             updatedProcesses[currentProcessIndex] = {
-                                 ...updatedProcesses[currentProcessIndex],
+                             currentProcesses[currentProcessIndex] = {
+                                 ...currentProcesses[currentProcessIndex],
                                  status: 'completed',
-                                 log: updatedProcesses[currentProcessIndex].log + " -> ¡Completado!"
+                                 log: currentProcesses[currentProcessIndex].log + " -> ¡Completado!"
                              };
 
                              // Start next step if not the end
                              if (currentProcessIndex < processTemplates.length - 1) {
                                  const nextStepTemplate = processTemplates[currentProcessIndex + 1];
-                                 updatedProcesses.push({
+                                 currentProcesses.push({
                                      ...nextStepTemplate,
-                                     id: updatedProcesses.length,
+                                     id: currentProcesses.length,
                                      status: shouldFail ? 'failed' : 'in_progress',
                                      log: shouldFail ? 'Error: Fallo en la red' : `Iniciando ${nextStepTemplate.name.toLowerCase()}`
                                  });
                              }
                             
-                             return { ...activity, processes: updatedProcesses };
+                             return { ...activity, processes: currentProcesses };
                         }
                     }
                     // Update last activity time for others
@@ -156,30 +175,43 @@ export default function MonitorPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent className="pt-2">
-                                    <div className="space-y-4">
+                                    <div className="relative">
                                         {activity.processes.length > 0 ? (
-                                            <AnimatePresence>
-                                                {activity.processes.map((process, index) => (
-                                                    <motion.div
-                                                        key={process.id}
-                                                        layout
-                                                        initial={{ opacity: 0, y: -10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        exit={{ opacity: 0, x: -20 }}
-                                                        transition={{ duration: 0.3 }}
-                                                        className="flex items-start gap-4 p-3 bg-muted/50 rounded-lg"
-                                                    >
-                                                        <StatusIndicator status={process.status} />
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <process.icon className="h-5 w-5 text-primary" />
-                                                                <p className="font-semibold">{process.name}</p>
-                                                            </div>
-                                                            <p className="text-sm text-muted-foreground font-mono">{process.log}</p>
-                                                        </div>
-                                                    </motion.div>
-                                                ))}
-                                            </AnimatePresence>
+                                            <>
+                                                <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-gray-200 -translate-y-1/2"></div>
+                                                <div className="relative flex justify-between items-center">
+                                                    <AnimatePresence>
+                                                        {activity.processes.map((process) => (
+                                                            <motion.div
+                                                                key={process.id}
+                                                                layout
+                                                                initial={{ opacity: 0, scale: 0.5 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0, scale: 0.5 }}
+                                                                transition={{ duration: 0.3 }}
+                                                            >
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <button>
+                                                                            <StatusIcon status={process.status} icon={process.icon} />
+                                                                        </button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-80">
+                                                                        <div className="grid gap-4">
+                                                                            <div className="space-y-2">
+                                                                                <h4 className="font-medium leading-none">{process.name}</h4>
+                                                                                <p className="text-sm text-muted-foreground font-mono">
+                                                                                    {process.log}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </motion.div>
+                                                        ))}
+                                                    </AnimatePresence>
+                                                </div>
+                                            </>
                                         ) : (
                                             <div className="text-center text-muted-foreground py-8">
                                                 <p>Esperando actividad...</p>
