@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, Home, LogOut, Menu, Users, BrainCircuit } from "lucide-react";
+import { Bell, Bot, Home, LogOut, Users, BrainCircuit } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
 // Simulated User type
 interface SimulatedUser {
@@ -21,9 +21,34 @@ interface SimulatedUser {
 }
 
 const navLinks = [
-  { href: "/admin/dashboard", label: "Admin Dashboard", icon: Home },
+  { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit },
 ];
+
+const MobileBottomNav = () => {
+    const pathname = usePathname();
+
+    return (
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
+            <nav className="grid grid-cols-3 items-center justify-around h-16">
+                {navLinks.map(link => {
+                    const isActive = pathname === link.href;
+                    return (
+                        <Link key={`${link.href}-mobile`} href={link.href} className={cn('flex flex-col items-center justify-center gap-1 transition-colors h-full', isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary')}>
+                            <link.icon className="h-5 w-5" />
+                            <span className="text-xs font-medium">{link.label}</span>
+                        </Link>
+                    )
+                })}
+                 <Link href="/dashboard" className="flex flex-col items-center justify-center gap-1 transition-colors h-full text-muted-foreground hover:text-primary">
+                    <Users className="h-5 w-5" />
+                    <span className="text-xs font-medium">Client View</span>
+                </Link>
+            </nav>
+        </div>
+    );
+};
+
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SimulatedUser | null>(null);
@@ -130,37 +155,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center justify-between gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-background z-40 md:justify-end">
-          <Sheet>
-              <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="md:hidden">
-                      <Menu className="h-5 w-5" />
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                  <SheetHeader>
-                      <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
-                  </SheetHeader>
-                  <nav className="grid gap-6 text-lg font-medium">
-                      <Link href="/" className="flex items-center gap-2 text-lg font-semibold font-headline mb-4 -rotate-6">
-                           <Bot className="h-6 w-6 text-primary" />
-                            <div className="flex flex-col text-lg leading-none">
-                              <span>Hey</span>
-                              <span className='text-base'>Manito!</span>
-                            </div>
-                      </Link>
-                      {navLinks.map(link => (
-                          <Link key={link.href} href={link.href} className={`flex items-center gap-4 px-2.5 ${pathname.startsWith(link.href) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                              <link.icon className="h-5 w-5" />
-                              {link.label}
-                          </Link>
-                      ))}
-                       <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
-                          <Users className="h-5 w-5" />
-                          Client View
-                       </Link>
-                  </nav>
-              </SheetContent>
-          </Sheet>
+          <Link href="/" className="flex items-center gap-2 font-semibold font-headline md:hidden -rotate-6">
+            <Bot className="h-6 w-6 text-primary" />
+            <div className="flex flex-col text-base leading-none">
+              <span>Hey</span>
+              <span className='text-sm'>Manito!</span>
+            </div>
+          </Link>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -187,9 +188,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40 pb-20 md:pb-6">
           {children}
         </main>
+        <MobileBottomNav />
       </div>
     </div>
   );
