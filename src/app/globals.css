@@ -23,8 +23,14 @@
   0% {
     d: path("M0,20 C150,-10 350,50 500,20 L500,30 L0,30 Z");
   }
+  25% {
+    d: path("M0,20 C180,0 320,40 500,20 L500,30 L0,30 Z");
+  }
   50% {
-    d: path("M0,20 C200,50 300,-10 500,20 L500,30 L0,30 Z");
+    d: path("M0,20 C200,30 300,-10 500,20 L500,30 L0,30 Z");
+  }
+  75% {
+    d: path("M0,20 C120,-5 380,55 500,20 L500,30 L0,30 Z");
   }
   100% {
     d: path("M0,20 C150,-10 350,50 500,20 L500,30 L0,30 Z");
@@ -32,7 +38,7 @@
 }
 
 .wavy-line {
-  animation: wave 10s linear infinite alternate;
+  animation: wave 12s linear infinite alternate;
 }
 
 @layer base {
