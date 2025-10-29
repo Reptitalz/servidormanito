@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard, Target } from "lucide-react";
+import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard, Target, Shield } from "lucide-react";
 import { useSwipeable } from 'react-swipeable';
 
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ const navLinks = [
   { href: "/dashboard/asistentes", demoHref: "/dashboarddemo/asistentes", label: "Asistentes", icon: Bot },
   { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Gestor", icon: Target },
   { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
+  { href: "/dashboard/monitor", demoHref: "/dashboard/monitor", label: "Monitor", icon: Shield, admin: true },
 ];
 
 const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
@@ -41,7 +42,7 @@ const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
             <nav className="grid grid-cols-4 items-center justify-around h-16">
-                {navLinks.map(link => {
+                {navLinks.filter(l => !l.admin).map(link => {
                     const href = isDemo && ['/dashboard', '/dashboard/asistentes'].includes(link.href) ? link.demoHref : link.href;
                     const isActive = pathname === href;
                     return (
@@ -216,13 +217,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {desktopNavLinks.map(link => (
+              {desktopNavLinks.map(link => {
+                // For a real admin user, you'd have a check like `user.isAdmin`
+                 const isAdmin = !user.isAnonymous; // Simulated admin
+                 if (link.admin && !isAdmin) return null;
+
+                 return(
                  <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
                     {link.badge > 0 && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{link.badge}</Badge>}
                  </Link>
-              ))}
+                 )
+              })}
             </nav>
           </div>
           <div className="mt-auto p-4">
@@ -285,5 +292,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
-
-    
