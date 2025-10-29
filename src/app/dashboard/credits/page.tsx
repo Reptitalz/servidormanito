@@ -25,6 +25,38 @@ export default function CreditsPage() {
         { id: "H-003", date: "28 de Mayo, 2024", description: "Uso de Asistente de Ventas", amount: "-2.3 créditos", status: "Facturado" },
     ];
     
+    const plans = [
+        {
+          name: "Gratuito",
+          price: "$0",
+          period: "/mes",
+          description: "Para empezar a explorar.",
+          features: ["500 Mensajes/mes", "1 Asistente", "Soporte básico"],
+          cta: "Plan Actual",
+          disabled: true,
+          variant: "secondary"
+        },
+        {
+          name: "Manito Pro",
+          price: "$45",
+          period: "/mes",
+          description: "Para negocios en crecimiento.",
+          features: ["5,000 Mensajes/mes", "3 Asistentes", "Integraciones y API", "Soporte prioritario"],
+          cta: "Mejorar a Pro",
+          popular: true,
+          variant: "default"
+        },
+        {
+          name: "Manito Empresa",
+          price: "A medida",
+          period: "",
+          description: "Soluciones para grandes volúmenes.",
+          features: ["Créditos personalizados", "Asistentes ilimitados", "Soporte dedicado 24/7", "Funciones avanzadas"],
+          cta: "Contactar Ventas",
+          variant: "outline"
+        },
+      ];
+
     return (
         <>
             <div className="flex flex-col items-start gap-4">
@@ -72,80 +104,42 @@ export default function CreditsPage() {
                                         className="w-full max-w-4xl"
                                     >
                                         <CarouselContent>
-                                            <CarouselItem className="sm:basis-1/2 md:basis-1/3">
-                                                <div className="p-1 h-full pt-4">
-                                                    <Card className="h-full flex flex-col">
-                                                        <CardHeader>
-                                                            <CardTitle className="font-headline">Gratuito</CardTitle>
-                                                            <CardDescription>Para empezar a explorar.</CardDescription>
-                                                            <div className="pt-4">
-                                                                <span className="text-4xl font-bold">$0</span>
-                                                                <span className="text-muted-foreground">/mes</span>
-                                                            </div>
-                                                        </CardHeader>
-                                                        <CardContent className="flex-1">
-                                                            <ul className="space-y-3">
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>500 Mensajes/mes</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>1 Asistente</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Básico</span></li>
-                                                            </ul>
-                                                        </CardContent>
-                                                        <CardFooter>
-                                                            <Button className="w-full" variant="secondary" disabled>Plan Actual</Button>
-                                                        </CardFooter>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                            <CarouselItem className="sm:basis-1/2 md:basis-1/3">
-                                                <div className="p-1 h-full pt-4">
-                                                    <Card className="border-primary border-2 relative shadow-lg h-full flex flex-col">
-                                                        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>
-                                                        <CardHeader>
-                                                            <CardTitle className="font-headline">Manito Pro</CardTitle>
-                                                            <CardDescription>Para negocios en crecimiento.</CardDescription>
-                                                            <div className="pt-4">
-                                                                <span className="text-4xl font-bold">$45</span>
-                                                                <span className="text-muted-foreground">/mes</span>
-                                                            </div>
-                                                        </CardHeader>
-                                                        <CardContent className="flex-1">
-                                                            <ul className="space-y-3">
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>5,000 Mensajes/mes</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>3 Asistentes</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Integraciones y API</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte Prioritario</span></li>
-                                                            </ul>
-                                                        </CardContent>
-                                                        <CardFooter>
-                                                            <Button className="w-full">Mejorar a Pro</Button>
-                                                        </CardFooter>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
-                                             <CarouselItem className="sm:basis-1/2 md:basis-1/3">
-                                                <div className="p-1 h-full pt-4">
-                                                    <Card className="h-full flex flex-col">
-                                                        <CardHeader>
-                                                            <CardTitle className="font-headline">Manito Empresa</CardTitle>
-                                                            <CardDescription>Soluciones para grandes volúmenes.</CardDescription>
-                                                            <div className="pt-4">
-                                                                <span className="text-4xl font-bold">A medida</span>
-                                                            </div>
-                                                        </CardHeader>
-                                                        <CardContent className="flex-1">
-                                                            <ul className="space-y-3">
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Créditos personalizados</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Asistentes ilimitados</span></li>
-                                                                <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Soporte dedicado 24/7</span></li>
-                                                                 <li className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-green-500" /><span>Funciones avanzadas</span></li>
-                                                            </ul>
-                                                        </CardContent>
-                                                        <CardFooter>
-                                                            <Button className="w-full" variant="outline">Contactar Ventas</Button>
-                                                        </CardFooter>
-                                                    </Card>
-                                                </div>
-                                            </CarouselItem>
+                                            {plans.map((plan) => (
+                                                <CarouselItem key={plan.name} className="sm:basis-1/2 md:basis-1/3">
+                                                    <div className="p-1 h-full pt-4">
+                                                        <Card className={`h-full flex flex-col ${plan.popular ? "border-primary border-2 relative shadow-lg" : ""}`}>
+                                                             {plan.popular && <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">Recomendado</Badge>}
+                                                            <CardHeader>
+                                                                <CardTitle className="font-headline">{plan.name}</CardTitle>
+                                                                <CardDescription>{plan.description}</CardDescription>
+                                                                <div className="pt-4">
+                                                                    <span className="text-4xl font-bold">{plan.price}</span>
+                                                                    <span className="text-muted-foreground">{plan.period}</span>
+                                                                </div>
+                                                            </CardHeader>
+                                                            <CardContent className="flex-1">
+                                                                <ul className="space-y-3">
+                                                                    {plan.features.map(feature => (
+                                                                        <li key={feature} className="flex items-center gap-2">
+                                                                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                                                            <span>{feature}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </CardContent>
+                                                            <CardFooter>
+                                                                <Button 
+                                                                    className="w-full" 
+                                                                    variant={plan.variant as any}
+                                                                    disabled={plan.disabled}
+                                                                >
+                                                                    {plan.cta}
+                                                                </Button>
+                                                            </CardFooter>
+                                                        </Card>
+                                                    </div>
+                                                </CarouselItem>
+                                            ))}
                                         </CarouselContent>
                                         <CarouselPrevious />
                                         <CarouselNext />
