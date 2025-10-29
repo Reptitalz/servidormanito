@@ -1,3 +1,4 @@
+
 import { Bot, Users, CreditCard, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,23 +82,23 @@ export default function Dashboard() {
       </div>
 
        <div className="pt-4">
-          <Card>
-            <CardHeader>
-                <CardTitle>Comienza a Crear</CardTitle>
-                <CardDescription>
-                    Crea un nuevo asistente de WhatsApp para automatizar tus conversaciones.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild size="lg" className="btn-shiny animated-gradient text-white font-bold w-full sm:w-auto">
-                    <Link href="/dashboard/asistentes/crear">
-                        <span className="btn-shiny-content">
-                            Crear Asistente
-                        </span>
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
+            <Card>
+                <div className="flex flex-col sm:flex-row items-center justify-between p-4 md:p-6">
+                    <div className="mb-4 sm:mb-0 sm:mr-6 text-center sm:text-left">
+                        <h3 className="text-lg font-semibold">Comienza a Crear</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Crea un asistente para automatizar tus conversaciones.
+                        </p>
+                    </div>
+                    <Button asChild className="btn-shiny animated-gradient text-white font-bold w-full sm:w-auto shrink-0">
+                        <Link href="/dashboard/asistentes/crear">
+                            <span className="btn-shiny-content">
+                                Crear Asistente
+                            </span>
+                        </Link>
+                    </Button>
+                </div>
+            </Card>
        </div>
 
     </>
