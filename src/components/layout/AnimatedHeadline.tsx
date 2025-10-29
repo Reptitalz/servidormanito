@@ -21,7 +21,7 @@ export function AnimatedHeadline() {
     <span className="inline-grid text-center overflow-hidden h-12 md:h-16 -mb-2 md:-mb-4">
       <span
         className="transition-transform duration-700 ease-in-out"
-        style={{ transform: `translateY(-${wordIndex * 100}%)` }}
+        style={{ transform: `translateY(-${wordIndex * 50}%)` }}
       >
         {words.map((word) => (
           <span key={word} className="flex items-center justify-center h-12 md:h-16 bg-gradient-to-r from-accent to-primary text-transparent bg-clip-text">
