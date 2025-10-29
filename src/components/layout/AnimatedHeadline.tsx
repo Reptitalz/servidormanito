@@ -11,7 +11,7 @@ export function AnimatedHeadline() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setWordIndex((prevIndex) => (prevIndex + 1) % words.length);
+      setWordIndex((prevIndex) => (prevIndex === 0 ? 1 : 0));
     }, animationDuration);
 
     return () => clearInterval(interval);
