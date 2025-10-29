@@ -26,7 +26,7 @@ interface SimulatedUser {
 }
 
 const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/admin", label: "Admin Dashboard", icon: Home },
   { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit, admin: true },
 ];
 
@@ -131,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               {navLinks.map(link => (
-                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname.startsWith(link.href) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}`}>
+                 <Link key={`${link.href}-${link.label}`} href={link.href} className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${pathname === link.href || (link.href !== '/admin' && pathname.startsWith(link.href)) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'}`}>
                     <link.icon className="h-4 w-4" />
                     {link.label}
                  </Link>
