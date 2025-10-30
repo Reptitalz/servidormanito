@@ -16,10 +16,10 @@ export function Footer() {
             </div>
           </div>
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-            <Link href="#features" className="hover:text-white transition-colors">Características</Link>
+            <Link href="#how-it-works" className="hover:text-white transition-colors">Características</Link>
             <Link href="#pricing" className="hover:text-white transition-colors">Precios</Link>
-            <Link href="/login" className="hover:text-white transition-colors">Iniciar Sesión</Link>
-            <Link href="/register" className="hover:text-white transition-colors">Registrarse</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Términos</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacidad</Link>
           </nav>
           <div className="text-sm text-center md:text-right">
             &copy; {currentYear} Hey Manito!. Todos los derechos reservados.
