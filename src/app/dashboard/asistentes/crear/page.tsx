@@ -16,6 +16,9 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth, useFirestore, useUser } from "@/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 const baseSteps = [
     { name: "Nombre del Asistente", icon: Wand2 },
@@ -77,7 +80,12 @@ export default function CreateAssistantPage() {
     const [selectedPersonality, setSelectedPersonality] = useState<string | null>(null);
     const [customPrompt, setCustomPrompt] = useState("");
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const router = useRouter();
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
 
     const isNameValid = useMemo(() => assistantName.length > 2 && validationErrors.length === 0, [assistantName, validationErrors]);
 
@@ -120,7 +128,8 @@ export default function CreateAssistantPage() {
             if (prev.includes(skillId)) {
                 return prev.filter(s => s !== skillId);
             }
-            if (prev.length < 3) {
+            // For now, let's keep the limit from create page logic, can be adjusted
+            if (prev.length < 3) { 
                 return [...prev, skillId];
             }
             return prev;
@@ -133,9 +142,9 @@ export default function CreateAssistantPage() {
             case "Nombre del Asistente":
                 return isNameValid;
             case "Imagen de Perfil":
-                return true;
+                return true; // Optional step
             case "Notificaciones (Opcional)":
-                return true;
+                return true; // Optional step
             case "Personalidad":
                 return selectedPersonality !== null;
             case "Comportamiento":
@@ -147,13 +156,54 @@ export default function CreateAssistantPage() {
         }
     }
     
+    const handleCreateAssistant = async () => {
+        if (!user) {
+            toast({
+                variant: "destructive",
+                title: "Error de autenticación",
+                description: "Debes iniciar sesión para crear un asistente.",
+            });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const assistantsCollection = collection(firestore, 'users', user.uid, 'assistants');
+            await addDoc(assistantsCollection, {
+                name: assistantName,
+                image: assistantImage,
+                ownerNotificationNumber: phoneNumber,
+                personality: selectedPersonality,
+                customPrompt: selectedPersonality === 'custom' ? customPrompt : null,
+                skills: selectedSkills,
+                status: "Activo",
+                waId: "",
+                verified: false,
+                usage: {
+                    messagesUsed: 0,
+                    messageLimit: 1000,
+                },
+                createdAt: serverTimestamp(),
+                lastUpdate: serverTimestamp(),
+            });
+
+            router.push('/dashboard/asistentes/creando');
+
+        } catch (error) {
+            console.error("Error creating assistant:", error);
+            toast({
+                variant: "destructive",
+                title: "Error al crear asistente",
+                description: "No se pudo guardar el asistente. Inténtalo de nuevo.",
+            });
+            setIsSubmitting(false);
+        }
+    };
+
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1);
         } else {
-             // Final action
-             console.log("Redirecting to creation page...");
-             router.push('/dashboard/asistentes/creando');
+             handleCreateAssistant();
         }
     }
 
@@ -416,11 +466,11 @@ export default function CreateAssistantPage() {
                                 size="lg"
                                 className="btn-shiny animated-gradient text-white font-bold"
                                 onClick={handleNext}
-                                disabled={!isStepComplete(currentStep)}
+                                disabled={!isStepComplete(currentStep) || isSubmitting}
                             >
                                 <span className="btn-shiny-content flex items-center">
-                                    {currentStep === steps.length - 1 ? 'Finalizar Creación' : 'Siguiente Paso'}
-                                    {currentStep === steps.length - 1 ? <Check className="ml-2 h-4 w-4" /> : <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />}
+                                    {isSubmitting ? 'Creando...' : (currentStep === steps.length - 1 ? 'Finalizar Creación' : 'Siguiente Paso')}
+                                    {!isSubmitting && (currentStep === steps.length - 1 ? <Check className="ml-2 h-4 w-4" /> : <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />)}
                                 </span>
                             </Button>
                         </div>

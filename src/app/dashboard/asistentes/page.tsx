@@ -14,43 +14,116 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import Image from "next/image";
-import QRCode from 'qrcode';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, doc, updateDoc, deleteDoc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Assistant {
+  id: string;
+  name: string;
+  status: 'Activo' | 'Inactivo' | 'Pausado';
+  usage: {
+    messagesUsed: number;
+    messageLimit: number;
+  };
+  lastUpdate: Timestamp;
+  waId: string;
+  verified: boolean;
+  skills: string[];
+  image: string | null;
+}
+
 
 export default function AsistentesPage() {
-  const allAssistants = [
-    { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_1/200/200" },
-    { id: "asst_2", name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "987654321", verified: false, skills: ["receive-calls", "recognize-owner"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_2/200/200" },
-    { id: "asst_3", name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "112233445", verified: true, skills: ["send-messages"], messageLimit: 1000, image: "https://picsum.photos/seed/asst_3/200/200" },
-    { id: "asst_4", name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "223344556", verified: false, skills: ["send-messages", "recognize-owner"], messageLimit: 1000, image: "" },
-    { id: "asst_5", name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "334455667", verified: false, skills: ["send-messages"], messageLimit: 5000, image: "https://picsum.photos/seed/asst_5/200/200" },
-    { id: "asst_6", name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "445566778", verified: true, skills: ["payment-auth", "google-sheet"], messageLimit: 2000, image: "" },
-  ];
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+
+  const assistantsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(firestore, 'users', user.uid, 'assistants');
+  }, [user, firestore]);
+
+  const { data: allAssistants, isLoading: isAssistantsLoading } = useCollection<Assistant>(assistantsQuery);
 
   const [currentPage, setCurrentPage] = useState(1);
   const ASSISTANTS_PER_PAGE = 3;
   const [messageLimitValue, setMessageLimitValue] = useState([500]);
-  
-  const totalPages = Math.ceil(allAssistants.length / ASSISTANTS_PER_PAGE);
+  const [editingAssistant, setEditingAssistant] = useState<Assistant | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedImage, setEditedImage] = useState<string | null>(null);
+
+  const totalPages = allAssistants ? Math.ceil(allAssistants.length / ASSISTANTS_PER_PAGE) : 0;
   const startIndex = (currentPage - 1) * ASSISTANTS_PER_PAGE;
   const endIndex = startIndex + ASSISTANTS_PER_PAGE;
-  const assistants = allAssistants.slice(startIndex, endIndex);
+  const assistants = allAssistants ? allAssistants.slice(startIndex, endIndex) : [];
 
   const getBadgeVariant = (status: string) => {
     switch (status) {
-      case 'Activo':
-        return 'default';
-      case 'Inactivo':
-        return 'destructive';
-      case 'Pausado':
-        return 'secondary';
-      default:
-        return 'outline';
+      case 'Activo': return 'default';
+      case 'Inactivo': return 'destructive';
+      case 'Pausado': return 'secondary';
+      default: return 'outline';
     }
   };
   
   const TOTAL_CREDITS = 100; // 100k messages
   const MAX_MESSAGES = TOTAL_CREDITS * 1000;
   const defaultBotImage = "https://picsum.photos/seed/robot/200/200";
+
+  const handleEditClick = (assistant: Assistant) => {
+    setEditingAssistant(assistant);
+    setEditedName(assistant.name);
+    setEditedImage(assistant.image);
+    setIsEditModalOpen(true);
+  };
+  
+  const handleSaveChanges = async () => {
+    if (!editingAssistant || !user) return;
+    try {
+      const assistantRef = doc(firestore, 'users', user.uid, 'assistants', editingAssistant.id);
+      await updateDoc(assistantRef, {
+        name: editedName,
+        image: editedImage,
+        lastUpdate: serverTimestamp()
+      });
+      toast({ title: "Asistente actualizado", description: "Los cambios se han guardado correctamente." });
+      setIsEditModalOpen(false);
+      setEditingAssistant(null);
+    } catch (error) {
+      console.error("Error updating assistant:", error);
+      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar el asistente." });
+    }
+  };
+
+  const handleDelete = async (assistantId: string) => {
+    if (!user) return;
+    try {
+        const assistantRef = doc(firestore, 'users', user.uid, 'assistants', assistantId);
+        await deleteDoc(assistantRef);
+        toast({ title: "Asistente eliminado", description: "El asistente ha sido eliminado permanentemente." });
+    } catch (error) {
+        console.error("Error deleting assistant:", error);
+        toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar el asistente." });
+    }
+  };
+
+  if (isUserLoading || isAssistantsLoading) {
+    return (
+        <>
+            <div className="flex flex-col items-center text-center gap-4">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-6 w-72" />
+                <Skeleton className="h-12 w-40" />
+            </div>
+            <div className="grid gap-4 md:gap-6 pt-4">
+                {[...Array(ASSISTANTS_PER_PAGE)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+            </div>
+        </>
+    )
+  }
 
   return (
     <>
@@ -72,9 +145,8 @@ export default function AsistentesPage() {
       </div>
 
       <div className="grid gap-4 md:gap-6 pt-4">
-        {assistants.map((assistant) => (
+        {assistants.length > 0 ? assistants.map((assistant) => (
           <Card key={assistant.id}>
-             <Dialog>
                 <CardHeader className="flex flex-row items-start justify-between gap-4 p-4 md:p-6">
                   <div className="flex items-center gap-4">
                     <div className="relative">
@@ -83,7 +155,7 @@ export default function AsistentesPage() {
                           alt={assistant.name} 
                           width={48} 
                           height={48} 
-                          className="rounded-full border" 
+                          className="rounded-full border object-cover" 
                           data-ai-hint="robot avatar"
                         />
                         {assistant.status === 'Activo' && (
@@ -109,12 +181,10 @@ export default function AsistentesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                         <DialogTrigger asChild>
-                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                           </DropdownMenuItem>
-                         </DialogTrigger>
+                         <DropdownMenuItem onSelect={() => handleEditClick(assistant)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                         </DropdownMenuItem>
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -133,9 +203,12 @@ export default function AsistentesPage() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction className={
-                            "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          }>Eliminar</AlertDialogAction>
+                          <AlertDialogAction 
+                            className={"bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+                            onClick={() => handleDelete(assistant.id)}
+                          >
+                            Eliminar
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                    </AlertDialog>
@@ -143,9 +216,9 @@ export default function AsistentesPage() {
                 <CardContent className="p-4 md:p-6 pt-0 space-y-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MessageSquare className="h-4 w-4" />
-                        <span>{assistant.messagesUsed} / {assistant.messageLimit} mensajes</span>
+                        <span>{assistant.usage.messagesUsed} / {assistant.usage.messageLimit} mensajes</span>
                     </div>
-                    <Progress value={(assistant.messagesUsed / assistant.messageLimit) * 100} className="h-2" />
+                    <Progress value={(assistant.usage.messagesUsed / assistant.usage.messageLimit) * 100} className="h-2" />
                     <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                         <Button variant="ghost" size="sm" className="h-7 gap-1 text-sm text-green-600 hover:text-green-700 hover:bg-green-50" asChild>
                           <Link href={`https://wa.me/${assistant.waId}`} target="_blank">
@@ -271,41 +344,21 @@ export default function AsistentesPage() {
                         </div>
                     </div>
                 </CardContent>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Editar Asistente</DialogTitle>
-                        <DialogDescription>
-                            Modifica el nombre y la imagen de perfil de tu asistente.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="assistant-name-edit">Nombre del Asistente</Label>
-                            <Input id="assistant-name-edit" defaultValue={assistant.name} />
-                        </div>
-                        <div className="space-y-2">
-                           <Label>Imagen de Perfil</Label>
-                           <div className="flex items-center gap-4">
-                                <Image 
-                                  src={assistant.image || defaultBotImage} 
-                                  alt="Avatar actual" 
-                                  width={64} 
-                                  height={64} 
-                                  className="rounded-full" 
-                                  data-ai-hint="robot avatar"
-                                />
-                                <Input id="picture-edit" type="file" accept="image/png, image/jpeg" className="flex-1" />
-                           </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline">Cancelar</Button>
-                        <Button>Guardar Cambios</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
           </Card>
-        ))}
+        )) : (
+            <Card className="text-center py-12">
+                <CardContent>
+                    <Bot className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-semibold">Aún no tienes asistentes</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        Crea tu primer asistente para empezar a automatizar tus conversaciones.
+                    </p>
+                    <Button asChild className="mt-6">
+                        <Link href="/dashboard/asistentes/crear">Crear Asistente</Link>
+                    </Button>
+                </CardContent>
+            </Card>
+        )}
       </div>
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-4 pt-6">
@@ -330,10 +383,51 @@ export default function AsistentesPage() {
             </Button>
         </div>
       )}
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Editar Asistente</DialogTitle>
+                <DialogDescription>
+                    Modifica el nombre y la imagen de perfil de tu asistente.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="assistant-name-edit">Nombre del Asistente</Label>
+                    <Input id="assistant-name-edit" value={editedName} onChange={(e) => setEditedName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                   <Label>Imagen de Perfil</Label>
+                   <div className="flex items-center gap-4">
+                        <Image 
+                          src={editedImage || defaultBotImage} 
+                          alt="Avatar actual" 
+                          width={64} 
+                          height={64} 
+                          className="rounded-full object-cover" 
+                          data-ai-hint="robot avatar"
+                        />
+                        <Input id="picture-edit" type="file" accept="image/png, image/jpeg" className="flex-1" onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                const file = e.target.files[0];
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    setEditedImage(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        }}/>
+                   </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSaveChanges}>Guardar Cambios</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
-
-    
-
-    

@@ -1,118 +1,16 @@
 {
   "entities": {
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information within the app.",
       "type": "object",
-      "description": "Represents a user of the Hey Manito! application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "firebaseUid": {
-          "type": "string",
-          "description": "The Firebase UID associated with the user's authentication."
-        },
-        "email": {
-          "type": "string",
-          "description": "The user's email address.",
-          "format": "email"
-        },
-        "name": {
-          "type": "string",
-          "description": "The user's name."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time the user account was created.",
-          "format": "date-time"
-        }
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "photoURL": { "type": "string", "format": "uri", "description": "URL of the user's profile picture." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user profile was created." }
       },
-      "required": [
-        "id",
-        "firebaseUid",
-        "email",
-        "name",
-        "createdAt"
-      ]
-    },
-    "Plan": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Plan",
-      "type": "object",
-      "description": "Represents a subscription plan for the Hey Manito! application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the plan."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the plan (e.g., Basic, Premium)."
-        },
-        "credits": {
-          "type": "number",
-          "description": "The number of credits included in the plan. 1 credit = 1000 messages."
-        },
-        "price": {
-          "type": "number",
-          "description": "The price of the plan."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the plan's features and benefits."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "credits",
-        "price",
-        "description"
-      ]
-    },
-    "Subscription": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Subscription",
-      "type": "object",
-      "description": "Represents a user's subscription to a specific plan.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the subscription."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Subscription)"
-        },
-        "planId": {
-          "type": "string",
-          "description": "Reference to Plan. (Relationship: Plan 1:N Subscription)"
-        },
-        "startDate": {
-          "type": "string",
-          "description": "The date the subscription started.",
-          "format": "date-time"
-        },
-        "endDate": {
-          "type": "string",
-          "description": "The date the subscription ends.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the subscription (e.g., active, cancelled)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "planId",
-        "startDate",
-        "endDate",
-        "status"
-      ]
+      "required": ["displayName", "email", "createdAt"]
     },
     "Assistant": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -120,45 +18,42 @@
       "type": "object",
       "description": "Represents a WhatsApp bot assistant managed within the Hey Manito! application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the assistant."
+        "name": { "type": "string", "description": "The name of the assistant." },
+        "description": { "type": "string", "description": "A description of the assistant's purpose." },
+        "image": { "type": "string", "description": "URL of the assistant's profile image." },
+        "personality": { "type": "string", "description": "The selected personality type for the bot." },
+        "customPrompt": { "type": "string", "description": "A custom prompt defining the bot's behavior if personality is 'custom'." },
+        "ownerNotificationNumber": { "type": "string", "description": "Phone number for sending notifications to the owner." },
+        "skills": { "type": "array", "items": { "type": "string" }, "description": "A list of skills enabled for the assistant." },
+        "status": { "type": "string", "enum": ["Activo", "Inactivo", "Pausado"], "description": "The current status of the assistant." },
+        "waId": { "type": "string", "description": "The WhatsApp ID associated with this assistant." },
+        "verified": { "type": "boolean", "description": "Whether the WhatsApp number is verified." },
+        "usage": {
+            "type": "object",
+            "properties": {
+                "messagesUsed": { "type": "number", "description": "Number of messages used in the current cycle." },
+                "messageLimit": { "type": "number", "description": "The message limit for the current cycle." }
+            }
         },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Assistant)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the assistant."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the assistant's purpose."
-        },
-        "phoneNumber": {
-          "type": "string",
-          "description": "The phone number associated with the WhatsApp bot."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time the assistant was created.",
-          "format": "date-time"
-        }
+        "createdAt": { "type": "string", "format": "date-time", "description": "The date and time the assistant was created." },
+        "lastUpdate": { "type": "string", "format": "date-time", "description": "The date and time the assistant was last updated." }
       },
-      "required": [
-        "id",
-        "userId",
-        "name",
-        "description",
-        "phoneNumber",
-        "createdAt"
-      ]
+      "required": ["name", "personality", "skills", "status", "createdAt", "lastUpdate"]
     }
   },
   "auth": {
     "providers": [
       "google.com"
     ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores public-facing profile information for each user."
+    },
+    "/users/{userId}/assistants/{assistantId}": {
+      "schema": { "$ref": "#/entities/Assistant" },
+      "description": "Stores the assistants created by a specific user."
+    }
   }
 }

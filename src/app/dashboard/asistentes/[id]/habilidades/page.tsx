@@ -1,23 +1,18 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, PhoneCall, PhoneOutgoing, MessageSquare, UserCheck, CreditCard, Receipt, Sheet, Edit, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-
-const allAssistants = [
-    { id: "asst_1", name: "Asistente de Ventas", status: "Activo", messagesUsed: 250, lastUpdate: "Hace 2 horas", waId: "123456789", verified: true, skills: ["send-messages", "payment-auth", "billing"] },
-    { id: "asst_2", name: "Soporte Técnico Nivel 1", status: "Inactivo", messagesUsed: 520, lastUpdate: "Ayer", waId: "987654321", verified: false, skills: ["receive-calls", "recognize-owner"] },
-    { id: "asst_3", name: "Recordatorios de Citas", status: "Activo", messagesUsed: 890, lastUpdate: "Hace 5 minutos", waId: "112233445", verified: true, skills: ["send-messages"] },
-    { id: "asst_4", name: "Bot de Bienvenida", status: "Activo", messagesUsed: 150, lastUpdate: "Hace 3 días", waId: "223344556", verified: false, skills: ["send-messages", "recognize-owner"] },
-    { id: "asst_5", name: "Encuestas de Satisfacción", status: "Pausado", messagesUsed: 300, lastUpdate: "La semana pasada", waId: "334455667", verified: false, skills: ["send-messages"] },
-    { id: "asst_6", name: "Gestor de Pedidos", status: "Activo", messagesUsed: 750, lastUpdate: "Hoy", waId: "445566778", verified: true, skills: ["payment-auth", "google-sheet"] },
-];
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const skillOptions = [
     { id: "receive-calls", label: "Recibir llamadas", icon: PhoneCall },
@@ -31,40 +26,90 @@ const skillOptions = [
 
 export default function AssistantSkillsPage() {
     const params = useParams();
-    const assistantId = params.id;
-    const assistant = allAssistants.find(a => a.id === assistantId);
+    const router = useRouter();
+    const assistantId = params.id as string;
+    
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const assistantRef = useMemoFirebase(() => {
+        if (!user || !assistantId) return null;
+        return doc(firestore, 'users', user.uid, 'assistants', assistantId);
+    }, [user, assistantId, firestore]);
+
+    const { data: assistant, isLoading: isAssistantLoading, error } = useDoc(assistantRef);
 
     const [isEditing, setIsEditing] = useState(false);
-    const [selectedSkills, setSelectedSkills] = useState(assistant?.skills || []);
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (assistant) {
+            setSelectedSkills(assistant.skills || []);
+        }
+    }, [assistant]);
 
     const handleSkillToggle = (skillId: string) => {
         setSelectedSkills(prev => {
             if (prev.includes(skillId)) {
                 return prev.filter(s => s !== skillId);
             }
-            // For now, let's keep the limit from create page logic, can be adjusted
-            // if (prev.length < 3) { 
-                return [...prev, skillId];
-            // }
-            // return prev;
+            return [...prev, skillId];
         });
     };
 
-    const handleSave = () => {
-        // Here you would typically save the new skills to your backend
-        console.log("Saving new skills:", selectedSkills);
-        // For now, we'll just update the assistant object in the mock data
+    const handleSave = async () => {
+        if (!assistantRef) return;
+        setIsSaving(true);
+        try {
+            await updateDoc(assistantRef, {
+                skills: selectedSkills,
+                lastUpdate: serverTimestamp(),
+            });
+            toast({
+                title: "Habilidades actualizadas",
+                description: "Las nuevas habilidades se han guardado correctamente.",
+            });
+            setIsEditing(false);
+        } catch (e) {
+            console.error("Error updating skills:", e);
+            toast({
+                variant: "destructive",
+                title: "Error al guardar",
+                description: "No se pudieron actualizar las habilidades.",
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
         if (assistant) {
-            assistant.skills = selectedSkills;
+            setSelectedSkills(assistant.skills || []);
         }
         setIsEditing(false);
     };
 
-    const handleCancel = () => {
-        setSelectedSkills(assistant?.skills || []);
-        setIsEditing(false);
-    };
+    if (isAssistantLoading) {
+        return <Skeleton className="w-full h-96" />;
+    }
 
+    if (error) {
+        return (
+             <div className="flex flex-col items-center justify-center h-full text-center">
+                <Card>
+                    <CardHeader><CardTitle>Error</CardTitle></CardHeader>
+                    <CardContent>
+                        <p className="text-destructive">No se pudo cargar el asistente.</p>
+                        <Button asChild className="mt-4">
+                            <Link href="/dashboard/asistentes"><ArrowLeft className="mr-2 h-4 w-4" />Volver</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     if (!assistant) {
         return (
@@ -87,7 +132,7 @@ export default function AssistantSkillsPage() {
         );
     }
     
-    const enabledSkills = skillOptions.filter(skill => assistant.skills.includes(skill.id));
+    const enabledSkills = skillOptions.filter(skill => (isEditing ? selectedSkills : assistant.skills).includes(skill.id));
 
     return (
         <div className="flex flex-col h-full">
@@ -156,13 +201,12 @@ export default function AssistantSkillsPage() {
                 </CardContent>
                 {isEditing ? (
                     <CardFooter className="justify-end gap-2">
-                        <Button variant="ghost" onClick={handleCancel}>
+                        <Button variant="ghost" onClick={handleCancel} disabled={isSaving}>
                             <X className="mr-2 h-4 w-4" />
                             Cancelar
                         </Button>
-                        <Button onClick={handleSave}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Guardar Cambios
+                        <Button onClick={handleSave} disabled={isSaving}>
+                            {isSaving ? "Guardando..." : <> <Save className="mr-2 h-4 w-4" /> Guardar Cambios </>}
                         </Button>
                     </CardFooter>
                 ) : (
