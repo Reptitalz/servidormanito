@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-international-phone/package.json b/node_modules/react-international-phone/package.json
+index 548c253..122f87a 100644
+--- a/node_modules/react-international-phone/package.json
++++ b/node_modules/react-international-phone/package.json
+@@ -35,5 +35,8 @@
+     "test": "vitest"
+   },
+   "types": "./dist/index.d.ts",
+-  "typesVersions": {
+-    "*": {
+-      "*": [
+-        "./dist/*",
+-        "./"
+-      ]
++  "browser": {
++    "./dist/index.js": "./dist/index.js",
++    "./dist/style.css": "./dist/style.css"
++  },
++  "sideEffects": [
++    "**/*.css"
++  ]
+ }
