@@ -81,9 +81,6 @@ export default function Home() {
             </div>
           </section>
         </main>
-        <div className="absolute bottom-0 left-0 right-0 h-40">
-           <WaterAnimation progress={25} isFlipped={true} />
-        </div>
       </div>
 
       <section id="features" className="py-20 md:py-32 bg-background">
