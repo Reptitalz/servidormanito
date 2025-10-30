@@ -42,12 +42,15 @@ const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
 
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
-            <nav className={`grid grid-cols-${mobileNavLinks.length} items-center justify-around h-16`}>
+            <nav className={cn(
+                'grid items-center justify-around h-16',
+                `grid-cols-${mobileNavLinks.length}`
+            )}>
                 {mobileNavLinks.map(link => {
                     const href = isDemo && ['/dashboard', '/dashboard/asistentes'].includes(link.href) ? link.demoHref : link.href;
                     const isActive = pathname === href;
                     return (
-                        <Link key={`${href}-${link.label}-mobile`} href={href} className={`flex flex-col items-center justify-center gap-1 transition-colors h-full ${isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+                        <Link key={`${href}-${link.label}-mobile`} href={href} className={cn('flex flex-col items-center justify-center gap-1 transition-colors h-full', isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary')}>
                             <link.icon className="h-5 w-5" />
                             <span className="text-xs font-medium">{link.label}</span>
                         </Link>
