@@ -61,13 +61,11 @@ export default function Home() {
     <div className="flex flex-col min-h-[100dvh] bg-background">
       <div className="relative">
         <div className="absolute inset-0 bg-gray-900 overflow-hidden">
+           <WaterAnimation progress={50} />
         </div>
         <Header />
         <main className="relative z-10">
           <section className="relative pt-48 pb-32 text-center text-white overflow-hidden">
-            <div className="absolute inset-0 z-0">
-                <WaterAnimation progress={100} />
-            </div>
             <div className="container mx-auto px-4 relative z-10">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter font-headline mb-4">
                 Automatiza tu <AnimatedHeadline />, <br /> Conecta con tus Clientes
