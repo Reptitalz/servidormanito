@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { ArrowLeft, Check, Fingerprint, Milestone, Sparkles, Wand2, X, Info, Image as ImageIcon, Briefcase, User, Heart, Bot as BotIcon, Phone, PhoneCall, PhoneOutgoing, MessageSquare, UserCheck, CreditCard, Receipt, Sheet, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -159,7 +159,7 @@ export default function CreateAssistantPage() {
         }
     }
     
-    const CurrentStepComponent = () => {
+    const CurrentStepComponent = useCallback(() => {
         const step = steps[currentStep];
         switch(step.name) {
             case "Nombre del Asistente":
@@ -352,7 +352,11 @@ export default function CreateAssistantPage() {
                     </Card>
                 );
         }
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        currentStep, steps, assistantName, validationErrors, isNameValid, 
+        assistantImage, phoneNumber, selectedPersonality, customPrompt, selectedSkills
+    ]);
 
 
     return (
