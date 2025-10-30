@@ -11,6 +11,7 @@ import { AnimatedHeadline } from '@/components/layout/AnimatedHeadline'
 import { WaterAnimation } from '@/components/layout/WaterAnimation'
 import { HowItWorks } from '@/components/layout/HowItWorks'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { SkillsCarousel } from '@/components/layout/SkillsCarousel'
 
 export default function Home() {
   const plans = [
@@ -86,6 +87,7 @@ export default function Home() {
         </main>
       </div>
 
+      <SkillsCarousel />
       <HowItWorks />
 
       <section id="pricing" className="py-20 md:py-32 bg-secondary">
