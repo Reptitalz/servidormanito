@@ -7,7 +7,6 @@ import { Users, ShieldCheck, ShoppingCart, CreditCard, Image as ImageIcon, Chevr
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
 
 const managementSections = [
@@ -60,36 +59,22 @@ export default function ImagesPage() {
                             <ChevronsUpDown className="h-4 w-4 opacity-50" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="bottom" className="h-[90%]">
+                    <SheetContent side="bottom" className="h-[90%] flex flex-col">
                         <SheetHeader>
                             <SheetTitle>Navegar a</SheetTitle>
                         </SheetHeader>
-                        <div className="py-4">
-                            <Carousel
-                                opts={{
-                                    align: "start",
-                                    dragFree: true,
-                                }}
-                                className="w-full"
-                            >
-                                <CarouselContent>
-                                    {managementSections.map((navSection, index) => (
-                                        <CarouselItem key={index} className="basis-1/2 sm:basis-1/3">
-                                            <div className="p-1">
-                                                <Link href={navSection.href}>
-                                                    <Card className={cn(
-                                                        "flex flex-col items-center justify-center p-4 h-40",
-                                                        pathname === navSection.href ? "border-primary ring-2 ring-primary" : ""
-                                                    )}>
-                                                        <navSection.icon className="h-8 w-8 text-primary mb-2" />
-                                                        <p className="text-sm font-semibold text-center">{navSection.label}</p>
-                                                    </Card>
-                                                </Link>
-                                            </div>
-                                        </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                            </Carousel>
+                        <div className="py-4 grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto">
+                            {managementSections.map((navSection) => (
+                                <Link key={navSection.id} href={navSection.href}>
+                                    <Card className={cn(
+                                        "flex flex-col items-center justify-center p-4 h-32 text-center",
+                                        pathname === navSection.href ? "border-primary ring-2 ring-primary" : ""
+                                    )}>
+                                        <navSection.icon className="h-8 w-8 text-primary mb-2" />
+                                        <p className="text-sm font-semibold">{navSection.label}</p>
+                                    </Card>
+                                </Link>
+                            ))}
                         </div>
                     </SheetContent>
                 </Sheet>
