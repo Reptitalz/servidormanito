@@ -17,7 +17,7 @@ export default function Home() {
       price: "$0",
       period: "/mes",
       description: "Para empezar a explorar.",
-      features: ["500 Mensajes/mes", "1 Asistente", "Soporte básico"],
+      features: ["500 Mensajes/mes", "Asistentes ilimitados", "Soporte básico"],
       cta: "Empezar Gratis",
     },
     {
@@ -25,7 +25,7 @@ export default function Home() {
       price: "$810",
       period: "MXN/mes",
       description: "Para negocios en crecimiento.",
-      features: ["5,000 Mensajes/mes", "3 Asistentes", "Integraciones y API", "Soporte prioritario"],
+      features: ["5,000 Mensajes/mes", "Asistentes ilimitados", "Integraciones y API", "Soporte prioritario"],
       cta: "Mejorar a Pro",
       popular: true,
     },
