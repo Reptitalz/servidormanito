@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge'
 import { AnimatedHeadline } from '@/components/layout/AnimatedHeadline'
 import { WaterAnimation } from '@/components/layout/WaterAnimation'
+import { HowItWorks } from '@/components/layout/HowItWorks'
 
 export default function Home() {
   const plans = [
@@ -17,7 +18,7 @@ export default function Home() {
       price: "$0",
       period: "/mes",
       description: "Para empezar a explorar.",
-      features: ["500 Mensajes/mes", "Asistentes ilimitados", "Soporte básico"],
+      features: ["Asistentes ilimitados", "500 Mensajes/mes", "Soporte básico"],
       cta: "Empezar Gratis",
     },
     {
@@ -25,7 +26,7 @@ export default function Home() {
       price: "$810",
       period: "MXN/mes",
       description: "Para negocios en crecimiento.",
-      features: ["5,000 Mensajes/mes", "Asistentes ilimitados", "Integraciones y API", "Soporte prioritario"],
+      features: ["Asistentes ilimitados", "5,000 Mensajes/mes", "Integraciones y API", "Soporte prioritario"],
       cta: "Mejorar a Pro",
       popular: true,
     },
@@ -34,26 +35,8 @@ export default function Home() {
       price: "A medida",
       period: "",
       description: "Soluciones para grandes volúmenes.",
-      features: ["Créditos personalizados", "Asistentes ilimitados", "Soporte dedicado 24/7", "Funciones avanzadas"],
+      features: ["Asistentes ilimitados", "Créditos personalizados", "Soporte dedicado 24/7", "Funciones avanzadas"],
       cta: "Contactar Ventas",
-    },
-  ];
-
-  const features = [
-    {
-      icon: <Zap className="w-8 h-8 text-primary" />,
-      title: "Configuración Instantánea",
-      description: "Conecta tu número de WhatsApp y empieza a automatizar conversaciones en minutos.",
-    },
-    {
-      icon: <Bot className="w-8 h-8 text-primary" />,
-      title: "Asistentes Inteligentes",
-      description: "Crea flujos de conversación avanzados que entienden y responden a tus clientes de forma natural.",
-    },
-    {
-      icon: <MessageSquare className="w-8 h-8 text-primary" />,
-      title: "Modelo de Créditos Simple",
-      description: "Con nuestro sistema de créditos (1 crédito = 1000 mensajes), solo pagas por lo que usas. Sin sorpresas.",
     },
   ];
 
@@ -61,7 +44,7 @@ export default function Home() {
     <div className="flex flex-col min-h-[100dvh] bg-background">
       <div className="relative">
         <div className="absolute inset-0 bg-gray-900 overflow-hidden">
-           <WaterAnimation progress={50} />
+           <WaterAnimation progress={50} isFlipped={true}/>
         </div>
         <Header />
         <main className="relative z-10">
@@ -83,31 +66,7 @@ export default function Home() {
         </main>
       </div>
 
-      <section id="features" className="py-20 md:py-32 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold font-headline mb-4">La plataforma que tu negocio necesita</h2>
-            <p className="text-muted-foreground text-lg mb-12">
-              Todo lo que necesitas para llevar la comunicación con tus clientes al siguiente nivel.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center shadow-md hover:shadow-xl transition-shadow">
-                <CardHeader>
-                  <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="font-headline">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
 
       <section id="pricing" className="py-20 md:py-32 bg-secondary">
         <div className="container mx-auto px-4">
