@@ -11,6 +11,8 @@ export default function CreatingAssistantPage() {
     const router = useRouter();
     const [progress, setProgress] = useState(0);
     const [displayText, setDisplayText] = useState("Inicializando...");
+    const animationFrameIdRef = useRef<number>();
+    const waveOffsetRef = useRef(0);
 
     useEffect(() => {
         const statuses = [
@@ -44,7 +46,9 @@ export default function CreatingAssistantPage() {
             });
         }, 50); // Adjust speed of progress
 
-        return () => clearInterval(progressInterval);
+        return () => {
+          clearInterval(progressInterval);
+        }
     }, [router]);
 
     return (
@@ -69,7 +73,7 @@ export default function CreatingAssistantPage() {
                 </p>
                 <div className="w-48 h-2 bg-white/20 rounded-full mt-8 overflow-hidden">
                      <div
-                        className="h-full bg-white rounded-full animated-gradient"
+                        className="h-full bg-white rounded-full"
                         style={{
                             width: `${progress}%`,
                             transition: 'width 0.1s linear',
