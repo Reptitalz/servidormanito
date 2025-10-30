@@ -5,7 +5,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 export default function CreatingAssistantPage() {
     const router = useRouter();
@@ -17,7 +16,6 @@ export default function CreatingAssistantPage() {
     const waveAmplitude = 10;
     const waveFrequency = 0.01;
     const waveSpeed = 0.05;
-    const waterColor = "hsl(var(--primary) / 0.7)";
 
     useEffect(() => {
         const statuses = [
@@ -71,6 +69,11 @@ export default function CreatingAssistantPage() {
         };
 
         const draw = () => {
+            if (!canvasRef.current) return;
+            const computedStyle = getComputedStyle(canvasRef.current);
+            const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+            const accentColor = computedStyle.getPropertyValue('--accent').trim();
+
             const CW = canvas.width;
             const CH = canvas.height;
 
@@ -83,9 +86,9 @@ export default function CreatingAssistantPage() {
 
             // Create a gradient for the water
             const gradient = ctx.createLinearGradient(0, waterY, 0, CH);
-            gradient.addColorStop(0, "hsl(var(--primary) / 0.8)");
-            gradient.addColorStop(0.5, "hsl(var(--accent) / 0.6)");
-            gradient.addColorStop(1, "hsl(var(--primary) / 0.8)");
+            gradient.addColorStop(0, `hsla(${primaryColor}, 0.8)`);
+            gradient.addColorStop(0.5, `hsla(${accentColor}, 0.6)`);
+            gradient.addColorStop(1, `hsla(${primaryColor}, 0.8)`);
             
             ctx.beginPath();
             ctx.moveTo(0, CH);
@@ -113,7 +116,7 @@ export default function CreatingAssistantPage() {
             ctx.lineTo(CW, CH);
             ctx.closePath();
             
-            ctx.fillStyle = "hsl(var(--primary) / 0.3)";
+            ctx.fillStyle = `hsla(${primaryColor}, 0.3)`;
             ctx.fill();
 
             waveOffset += waveSpeed;
@@ -132,7 +135,7 @@ export default function CreatingAssistantPage() {
 
     return (
         <>
-            <canvas ref={canvasRef} className="absolute inset-0 z-0 w-full h-full bg-gray-900"></canvas>
+            <canvas ref={canvasRef} className="fixed inset-0 z-0 w-full h-full bg-gray-900"></canvas>
             
             <motion.div
                 className="relative z-10 flex flex-col items-center"
