@@ -21,29 +21,24 @@ export default function AdminLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(''); // Clear previous errors
+
     if (email !== 'reptitalz@heymanito.com') {
       setError('Acceso denegado. Este correo no tiene permisos de administrador.');
       return;
     }
-    
-    if (password !== 'Susan@12') {
-        setError('Contraseña incorrecta.');
-        return;
-    }
 
     try {
-        // Since we are validating the password manually, we can sign in with the expected credentials
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push('/admin/dashboard');
+      // Delegate password validation entirely to Firebase
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/admin/dashboard');
     } catch (err: any) {
-        if (err.code === 'auth/user-not-found') {
-            setError('El usuario administrador no existe. Contacta al soporte.');
-        } else if (err.code === 'auth/wrong-password') {
-            setError('Credenciales inválidas. Inténtalo de nuevo.');
-        } else {
-            setError('Ocurrió un error inesperado durante el inicio de sesión.');
-        }
-        console.error(err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+          setError('Credenciales inválidas. Verifica el correo y la contraseña.');
+      } else {
+          setError('Ocurrió un error inesperado durante el inicio de sesión.');
+          console.error(err);
+      }
     }
   };
 
