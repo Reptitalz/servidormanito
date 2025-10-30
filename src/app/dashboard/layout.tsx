@@ -29,7 +29,6 @@ const navLinks = [
   { href: "/dashboard", demoHref: "/dashboarddemo", label: "Dashboard", icon: Home },
   { href: "/dashboard/asistentes", demoHref: "/dashboarddemo/asistentes", label: "Asistentes", icon: Bot },
   { href: "/dashboard/clients", demoHref: "/dashboard/clients", label: "Gestor", icon: Target },
-  { href: "/dashboard/processes", demoHref: "/dashboard/processes", label: "Procesos", icon: BrainCircuit, mobile: false },
   { href: "/dashboard/credits", demoHref: "/dashboard/credits", label: "Créditos", icon: CreditCard },
 ];
 
@@ -50,9 +49,9 @@ const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
                     const href = isDemo && ['/dashboard', '/dashboard/asistentes'].includes(link.href) ? link.demoHref : link.href;
                     const isActive = pathname === href;
                     return (
-                        <Link key={`${href}-${link.label}-mobile`} href={href} className={cn('flex flex-col items-center justify-center gap-1 transition-colors h-full', isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary')}>
+                        <Link key={`${href}-${link.label}-mobile`} href={href} className={cn('flex flex-row items-center justify-center gap-2 transition-colors h-full text-sm', isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary')}>
                             <link.icon className="h-5 w-5" />
-                            <span className="text-xs font-medium">{link.label}</span>
+                            <span className="font-medium">{link.label}</span>
                         </Link>
                     )
                 })}
@@ -302,3 +301,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     
 
     
+
