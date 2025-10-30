@@ -1,4 +1,5 @@
 
+
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, MessageSquare, Zap, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AnimatedHeadline } from '@/components/layout/AnimatedHeadline'
+import { WaterAnimation } from '@/components/layout/WaterAnimation'
 
 export default function Home() {
   const plans = [
@@ -59,12 +61,7 @@ export default function Home() {
     <div className="flex flex-col min-h-[100dvh] bg-background">
       <div className="relative">
         <div className="absolute inset-0 bg-gray-900 overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute -top-1/2 -left-1/2 w-96 h-96 bg-primary/50 rounded-full filter blur-3xl opacity-50 animate-shape1"></div>
-            <div className="absolute -bottom-1/2 -right-1/4 w-96 h-96 bg-accent/50 rounded-full filter blur-3xl opacity-50 animate-shape2"></div>
-            <div className="absolute top-1/4 left-1/3 w-80 h-80 bg-fuchsia-500/40 rounded-full filter blur-2xl opacity-40 animate-shape3"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-indigo-500/40 rounded-lg filter blur-2xl opacity-40 animate-shape4"></div>
-          </div>
+          <WaterAnimation />
         </div>
         <Header />
         <main className="relative z-10">
