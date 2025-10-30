@@ -61,7 +61,6 @@ export default function Home() {
     <div className="flex flex-col min-h-[100dvh] bg-background">
       <div className="relative">
         <div className="absolute inset-0 bg-gray-900 overflow-hidden">
-          <WaterAnimation />
         </div>
         <Header />
         <main className="relative z-10">
@@ -81,10 +80,8 @@ export default function Home() {
             </div>
           </section>
         </main>
-        <div className="absolute bottom-0 left-0 right-0 h-20 text-background">
-           <svg viewBox="0 0 500 30" preserveAspectRatio="none" className="w-full h-full">
-            <path className="wavy-line" d="M0,20 C150,-10 350,50 500,20 L500,30 L0,30 Z" fill="hsl(var(--background))" />
-          </svg>
+        <div className="absolute bottom-0 left-0 right-0 h-40">
+           <WaterAnimation progress={25} isFlipped={true} />
         </div>
       </div>
 
