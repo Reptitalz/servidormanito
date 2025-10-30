@@ -88,7 +88,7 @@ export default function CreditsPage() {
                                     </span>
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="w-screen h-screen max-w-none sm:rounded-none flex flex-col">
+                            <DialogContent className="h-screen w-screen max-w-none sm:rounded-none flex flex-col">
                                 <DialogHeader className="text-center pt-8">
                                     <DialogTitle className="text-3xl">Elige tu Plan</DialogTitle>
                                     <DialogDescription>
