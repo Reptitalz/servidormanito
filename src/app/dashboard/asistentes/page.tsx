@@ -317,7 +317,7 @@ export default function AsistentesPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Anterior
             </Button>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
                 Página {currentPage} de {totalPages}
             </span>
             <Button
@@ -333,5 +333,7 @@ export default function AsistentesPage() {
     </>
   );
 }
+
+    
 
     
