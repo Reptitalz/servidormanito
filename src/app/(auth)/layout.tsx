@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Bot, Users, MessageSquare, BrainCircuit } from 'lucide-react';
 import { WaterAnimation } from '@/components/layout/WaterAnimation';
@@ -26,8 +27,8 @@ export default function AuthLayout({
   ];
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <div className="flex flex-col items-center justify-center p-4 relative bg-secondary">
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-3">
+      <div className="flex flex-col items-center justify-center p-4 relative bg-secondary lg:col-span-1">
         <div className="absolute top-8 left-8">
             <Link href="/" className="flex items-center gap-2 text-foreground -rotate-6">
             <Bot className="h-8 w-8 text-primary" />
@@ -39,7 +40,7 @@ export default function AuthLayout({
         </div>
         {children}
       </div>
-      <div className="hidden lg:flex flex-col items-center justify-center relative p-12 text-white bg-gray-900">
+      <div className="hidden lg:flex flex-col items-center justify-center relative p-12 text-white bg-gray-900 lg:col-span-2">
         <WaterAnimation progress={100} isFlipped={true}/>
         <WaterAnimation progress={50} />
         
