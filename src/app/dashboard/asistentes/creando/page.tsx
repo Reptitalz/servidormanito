@@ -30,7 +30,7 @@ export default function CreatingAssistantPage() {
     }, [router]);
 
     return (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center w-full overflow-hidden bg-gray-900">
+        <>
             {/* Animated Shapes Background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute -top-1/2 -left-1/2 w-96 h-96 bg-primary/30 rounded-full filter blur-3xl opacity-50 animate-shape1"></div>
@@ -42,7 +42,7 @@ export default function CreatingAssistantPage() {
 
             {/* Content */}
             <motion.div
-                className="relative z-10 flex flex-col items-center justify-center text-center text-white"
+                className="relative z-10 flex flex-col items-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -65,6 +65,8 @@ export default function CreatingAssistantPage() {
                     ></div>
                 </div>
             </motion.div>
-        </div>
+        </>
     );
 }
+
+    

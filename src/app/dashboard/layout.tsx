@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { toast } = useToast();
 
   const isDemo = pathname.startsWith('/dashboarddemo');
-  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades') || pathname.includes('/conectar');
+  const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades') || pathname.includes('/conectar') || pathname.includes('/creando');
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleSwipe(1),
@@ -181,12 +181,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // without the main sidebar and header.
     const containerClasses = cn(
         "flex flex-col min-h-screen",
-        pathname.includes('/conectar') ? "items-center justify-center bg-muted/40" : "bg-secondary/40"
+        pathname.includes('/conectar') ? "items-center justify-center bg-muted/40" : "bg-secondary/40",
+        pathname.includes('/creando') && "fixed inset-0 z-50 w-full overflow-hidden bg-gray-900"
     );
 
     const mainClasses = cn(
         "flex flex-1 flex-col",
-        !pathname.includes('/conectar') && "gap-4 p-4 lg:gap-6 lg:p-6"
+        !pathname.includes('/conectar') && !pathname.includes('/creando') && "gap-4 p-4 lg:gap-6 lg:p-6",
+        pathname.includes('/creando') && "items-center justify-center text-center text-white"
     );
 
     return (
@@ -292,3 +294,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 }
+
+    
