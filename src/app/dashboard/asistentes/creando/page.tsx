@@ -109,18 +109,18 @@ export default function CreatingAssistantPage() {
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.2, type: 'spring', stiffness: 260, damping: 20 }}
                         >
-                            <Card className="w-full max-w-md m-4 text-center">
-                                <CardContent className="p-8">
+                            <Card className="w-full max-w-sm m-4 text-center">
+                                <CardContent className="p-6">
                                     <motion.div
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 12 }}
-                                        className="mx-auto h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-6"
+                                        className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4"
                                     >
-                                        <Check className="h-12 w-12 text-green-600" />
+                                        <Check className="h-10 w-10 text-green-600" />
                                     </motion.div>
-                                    <h2 className="text-2xl font-bold font-headline mb-2">¡Asistente Creado!</h2>
-                                    <p className="text-muted-foreground mb-6">
+                                    <h2 className="text-xl font-bold font-headline mb-2">¡Asistente Creado!</h2>
+                                    <p className="text-muted-foreground text-sm mb-6">
                                         Tu nuevo asistente está en la bandeja. El siguiente paso es conectarlo a WhatsApp escaneando el código QR.
                                     </p>
                                     <Button asChild size="lg" className="w-full">
