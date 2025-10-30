@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const steps = [
     { name: "Nombre del Asistente", icon: Wand2 },
     { name: "Imagen de Perfil", icon: ImageIcon },
-    { name: "Número de Teléfono", icon: Phone },
+    { name: "Notificaciones (Opcional)", icon: Phone },
     { name: "Personalidad", icon: Fingerprint },
     { name: "Habilidades", icon: Milestone },
 ];
@@ -113,7 +113,7 @@ export default function CreateAssistantPage() {
     const isStepComplete = (stepIndex: number) => {
         if (stepIndex === 0) return isNameValid;
         if (stepIndex === 1) return assistantImage !== null;
-        if (stepIndex === 2) return phoneNumber.length > 8; // Simple validation for now
+        if (stepIndex === 2) return true; // Optional step
         if (stepIndex === 3) return selectedPersonality !== null;
         if (stepIndex === 4) return selectedSkills.length > 0;
         return false;
@@ -272,12 +272,12 @@ export default function CreateAssistantPage() {
                     {currentStep === 2 && (
                        <Card>
                             <CardHeader>
-                                <CardTitle>Paso 3: Número de Teléfono</CardTitle>
-                                <CardDescription>Define el número de teléfono que usará tu asistente.</CardDescription>
+                                <CardTitle>Paso 3: Notificaciones al Propietario (Opcional)</CardTitle>
+                                <CardDescription>Ingresa tu número de teléfono si deseas recibir notificaciones importantes del asistente, como errores críticos o solicitudes que requieran tu atención.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                  <div className="space-y-2">
-                                    <Label htmlFor="phone-number">Número de Teléfono</Label>
+                                    <Label htmlFor="phone-number">Tu Número de Teléfono</Label>
                                      <PhoneInput
                                         value={phoneNumber}
                                         onChange={(phone) => setPhoneNumber(phone)}
@@ -287,7 +287,7 @@ export default function CreateAssistantPage() {
                                 <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground flex items-start gap-2">
                                     <Info className="h-5 w-5 shrink-0 mt-0.5" />
                                     <span>
-                                        Importante: El número de teléfono que utilices no debe tener una cuenta de WhatsApp o WhatsApp Business vinculada.
+                                        Este paso es completamente opcional. Si no ingresas un número, simplemente no recibirás alertas por WhatsApp.
                                     </span>
                                 </div>
 
@@ -299,11 +299,10 @@ export default function CreateAssistantPage() {
                                     <Button
                                         size="lg"
                                         className="btn-shiny animated-gradient text-white font-bold"
-                                        disabled={!isStepComplete(2)}
                                         onClick={() => setCurrentStep(3)}
                                     >
                                         <span className="btn-shiny-content flex items-center">
-                                            Siguiente Paso
+                                            {phoneNumber ? 'Siguiente' : 'Omitir y Siguiente'}
                                             <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
                                         </span>
                                     </Button>
@@ -408,3 +407,5 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
+    
