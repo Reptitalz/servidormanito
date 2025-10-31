@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Bell, Bot, Home, LogOut, Menu, Package, Users, CreditCard, Target, Shield, BrainCircuit } from "lucide-react";
 import { useSwipeable } from 'react-swipeable';
 import { signOut } from 'firebase/auth';
+import { collection } from 'firebase/firestore';
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 
 
 const navLinks = [
@@ -54,9 +55,19 @@ const MobileBottomNav = ({ isSpecialPage }: { isSpecialPage: boolean }) => {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+
+  const assistantsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(firestore, 'users', user.uid, 'assistants');
+  }, [user, firestore]);
+
+  const { data: assistants, isLoading: areAssistantsLoading } = useCollection(assistantsQuery);
+  const assistantCount = assistants?.length || 0;
+
 
   const isSpecialPage = pathname === '/dashboard/asistentes/crear' || pathname.includes('/habilidades') || pathname.includes('/conectar') || pathname.includes('/creando');
 
@@ -89,6 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleSignOut = async () => {
     try {
+      if (!auth) return;
       await signOut(auth);
       router.push('/');
       toast({
@@ -137,14 +149,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
   );
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || !user || areAssistantsLoading) {
     return loadingSkeleton;
   }
   
   const desktopNavLinks = navLinks.map(link => ({
     ...link,
     href: link.href,
-    badge: (link.href === '/dashboard/asistentes' ? 3 : 0),
+    badge: (link.href === '/dashboard/asistentes' ? assistantCount : 0),
   }));
 
   if (isSpecialPage) {
