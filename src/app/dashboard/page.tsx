@@ -45,7 +45,7 @@ export default function Dashboard() {
       return (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
+            <CardTitle className="text-sm font-medium">Asistentes Creados</CardTitle>
             <Bot className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -60,13 +60,13 @@ export default function Dashboard() {
     return (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Asistentes Activos</CardTitle>
+            <CardTitle className="text-sm font-medium">Asistentes Creados</CardTitle>
             <Bot className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeAssistants} / {totalAssistants}</div>
+            <div className="text-2xl font-bold">{totalAssistants}</div>
             <p className="text-xs text-muted-foreground">
-              Bots actualmente en funcionamiento.
+              Crea todos los que necesites. {activeAssistants} activos.
             </p>
             <Button asChild size="sm" className="mt-4 w-full">
               <Link href="/dashboard/asistentes">
