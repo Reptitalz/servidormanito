@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { createCheckoutSession } from '@/ai/flows/payment-flow';
 
 interface Plan {
     name: string;
@@ -18,10 +19,33 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
     const buttonRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
+    const handleCheckout = async () => {
+        try {
+            const { checkoutUrl } = await createCheckoutSession({
+                planName: plan.name,
+                amount: plan.price,
+                description: plan.description,
+            });
+
+            if (checkoutUrl) {
+                // Redirect to Stripe's checkout page
+                window.location.href = checkoutUrl;
+            } else {
+                throw new Error("No se pudo crear la sesión de pago.");
+            }
+        } catch (error: any) {
+            console.error('Error creating checkout session:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error al Pagar',
+                description: 'No se pudo iniciar el proceso de pago. Por favor, inténtalo de nuevo.',
+            });
+        }
+    };
+
+
     useEffect(() => {
-        // Only run this logic in the browser AND if it's in a top-level context (not an iframe)
         if (typeof window === 'undefined' || window.self !== window.top) {
-            console.warn("Google Pay button not rendered: not in a top-level browsing context.");
             return;
         }
 
@@ -31,10 +55,9 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
         }
 
         const googlePayClient = new (window as any).google.payments.api.PaymentsClient({
-            environment: 'TEST', // Use 'PRODUCTION' in production
+            environment: 'TEST',
         });
 
-        const allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
         const baseCardPaymentMethod = {
             type: 'CARD',
             parameters: {
@@ -42,39 +65,7 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
                 allowedCardNetworks: ['MASTERCARD', 'VISA'],
             },
         };
-
-        const tokenizedCardPaymentMethod = {
-            type: 'CARD',
-            parameters: {
-                allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                allowedCardNetworks: ['MASTERCARD', 'VISA'],
-            },
-            tokenizationSpecification: {
-                type: 'PAYMENT_GATEWAY',
-                parameters: {
-                    gateway: 'stripe',
-                    'stripe:version': '2020-08-27',
-                    'stripe:publishableKey': 'pk_test_YOUR_STRIPE_PUBLISHABLE_KEY', // Replace with your actual Stripe key
-                },
-            },
-        };
         
-        const paymentDataRequest = {
-            apiVersion: 2,
-            apiVersionMinor: 0,
-            allowedPaymentMethods: [baseCardPaymentMethod, tokenizedCardPaymentMethod],
-            transactionInfo: {
-                totalPriceStatus: 'FINAL',
-                totalPrice: plan.price.toFixed(2),
-                currencyCode: 'MXN',
-                countryCode: 'MX',
-            },
-            merchantInfo: {
-                merchantName: 'Hey Manito!',
-                merchantId: '01234567890123456789', // Replace with your Google Pay Merchant ID
-            },
-        };
-
         try {
             googlePayClient.isReadyToPay({
                 apiVersion: 2,
@@ -83,26 +74,7 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
             }).then((response: { result: any; }) => {
                 if (response.result && buttonRef.current) {
                     const button = googlePayClient.createButton({
-                        onClick: () => {
-                            googlePayClient.loadPaymentData(paymentDataRequest)
-                                .then((paymentData: any) => {
-                                    // This is where you would process the payment on your backend
-                                    // For now, we'll just simulate success
-                                    console.log('Payment data:', paymentData);
-                                    toast({
-                                        title: "¡Pago Exitoso!",
-                                        description: `Has comprado el ${plan.name}. Los créditos se añadirán a tu cuenta.`,
-                                    });
-                                })
-                                .catch((err: any) => {
-                                    console.error('Error loading payment data:', err);
-                                    toast({
-                                        variant: 'destructive',
-                                        title: 'Error en el Pago',
-                                        description: 'No se pudo completar la transacción. Por favor, inténtalo de nuevo.',
-                                    });
-                                });
-                        },
+                        onClick: handleCheckout, // Use our new handler
                         buttonColor: 'default',
                         buttonType: 'buy', 
                         buttonSizeMode: 'fill',
@@ -116,7 +88,6 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
              console.error('Error initializing Google Pay button. This can happen in non-secure or iframe contexts:', err);
         }
 
-        // Cleanup function
         return () => {
             if (buttonRef.current) {
                 buttonRef.current.innerHTML = '';
