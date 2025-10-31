@@ -157,8 +157,8 @@ export default function CreateAssistantPage() {
         }
     }
     
-    const handleCreateAssistant = async () => {
-        if (!user) {
+    const handleCreateAssistant = () => {
+        if (!user || !firestore) {
             toast({
                 variant: "destructive",
                 title: "Error de autenticación",
@@ -192,7 +192,8 @@ export default function CreateAssistantPage() {
             .then(() => {
                 router.push('/dashboard/asistentes/creando');
             })
-            .catch((error) => {
+            .catch((serverError) => {
+                console.error("Firestore Error:", serverError);
                 const permissionError = new FirestorePermissionError({
                     path: assistantsCollection.path,
                     operation: 'create',
