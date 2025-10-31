@@ -12,35 +12,42 @@ import { WaterAnimation } from '@/components/layout/WaterAnimation'
 import { HowItWorks } from '@/components/layout/HowItWorks'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { SkillsCarousel } from '@/components/layout/SkillsCarousel'
+import GooglePayButton from '@/components/payments/GooglePayButton'
 
 export default function Home() {
   const plans = [
     {
       name: "Explorador",
-      price: "$0",
+      price: 0,
+      priceString: "$0",
       period: "para siempre",
       description: "Ideal para probar la plataforma.",
       features: ["1,000 créditos de bienvenida", "1 Asistente", "Soporte comunitario"],
       cta: "Empezar Gratis",
-      variant: "outline"
+      variant: "outline",
+      isGooglePay: false
     },
     {
       name: "Manito Pro",
-      price: "$450",
+      price: 450,
+      priceString: "$450",
       period: "MXN / 5,000 créditos",
       description: "Para negocios que escalan.",
       features: ["~5,000 Mensajes", "Asistentes ilimitados", "Integraciones y acceso API", "Soporte prioritario"],
-      cta: "Comprar Créditos",
+      cta: "Comprar con Google Pay",
       popular: true,
+      isGooglePay: true,
     },
     {
       name: "Manito Empresa",
-      price: "A medida",
+      price: 0,
+      priceString: "A medida",
       period: "",
       description: "Soluciones para grandes volúmenes.",
       features: ["Créditos personalizados", "Soporte dedicado 24/7", "Funciones avanzadas"],
       cta: "Contactar Ventas",
-      variant: "outline"
+      variant: "outline",
+      isGooglePay: false
     },
   ];
 
@@ -109,7 +116,7 @@ export default function Home() {
                     <CardTitle className="font-headline">{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
                     <div className="pt-4">
-                      <span className="text-4xl font-bold">{plan.price}</span>
+                      <span className="text-4xl font-bold">{plan.priceString}</span>
                       <span className="text-muted-foreground">{plan.period}</span>
                     </div>
                   </CardHeader>
@@ -124,9 +131,13 @@ export default function Home() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button asChild className="w-full" variant={plan.popular ? "default" : "outline"}>
-                        <Link href="/register">{plan.cta}</Link>
-                    </Button>
+                    {plan.isGooglePay ? (
+                      <GooglePayButton plan={plan} />
+                    ) : (
+                      <Button asChild className="w-full" variant={plan.popular ? "default" : "outline"}>
+                          <Link href="/register">{plan.cta}</Link>
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </div>

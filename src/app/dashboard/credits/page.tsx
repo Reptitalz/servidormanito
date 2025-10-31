@@ -13,6 +13,7 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebas
 import { collection } from "firebase/firestore";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import GooglePayButton from "@/components/payments/GooglePayButton";
 
 interface Assistant {
   id: string;
@@ -63,41 +64,49 @@ export default function CreditsPage() {
     const plans = [
       {
         name: "Plan Gratuito",
-        price: "Activado",
+        price: 0,
+        priceString: "Activado",
         period: "",
         description: "1,000 créditos para empezar.",
         features: ["~1,000 Mensajes", "1 Asistente", "Soporte comunitario"],
         cta: "Tu Plan Actual",
         variant: "outline",
-        disabled: true
+        disabled: true,
+        isGooglePay: false,
       },
       {
         name: "Paquete Básico",
-        price: "$450",
+        price: 450,
+        priceString: "$450",
         period: "MXN",
         description: "5,000 créditos para tus asistentes.",
         features: ["~5,000 Mensajes", "Válido por 1 año", "Ideal para tráfico moderado"],
         cta: "Comprar Paquete",
-        variant: "default"
+        variant: "default",
+        isGooglePay: true,
       },
       {
         name: "Paquete Pro",
-        price: "$810",
+        price: 810,
+        priceString: "$810",
         period: "MXN",
         description: "10,000 créditos a un mejor precio.",
         features: ["~10,000 Mensajes", "Válido por 1 año", "Acceso a API", "Soporte prioritario"],
         cta: "Comprar Paquete",
         popular: true,
-        variant: "default"
+        variant: "default",
+        isGooglePay: true,
       },
       {
         name: "Paquete Empresa",
-        price: "A medida",
+        price: 0,
+        priceString: "A medida",
         period: "",
         description: "Soluciones para grandes volúmenes.",
         features: ["Créditos personalizados", "Precios por volumen", "Soporte dedicado 24/7"],
         cta: "Contactar Ventas",
-        variant: "outline"
+        variant: "outline",
+        isGooglePay: false,
       },
     ];
       
@@ -167,7 +176,7 @@ export default function CreditsPage() {
                                                             <CardTitle className="font-headline">{plan.name}</CardTitle>
                                                             <CardDescription>{plan.description}</CardDescription>
                                                             <div className="pt-4">
-                                                                <span className="text-4xl font-bold">{plan.price}</span>
+                                                                <span className="text-4xl font-bold">{plan.priceString}</span>
                                                                 <span className="text-muted-foreground">{plan.period}</span>
                                                             </div>
                                                         </CardHeader>
@@ -182,13 +191,17 @@ export default function CreditsPage() {
                                                             </ul>
                                                         </CardContent>
                                                         <CardFooter>
-                                                            <Button 
-                                                                className="w-full" 
-                                                                variant={plan.variant as any}
-                                                                disabled={plan.disabled}
-                                                            >
-                                                                {plan.cta}
-                                                            </Button>
+                                                            {plan.isGooglePay ? (
+                                                                <GooglePayButton plan={plan} />
+                                                            ) : (
+                                                                <Button 
+                                                                    className="w-full" 
+                                                                    variant={plan.variant as any}
+                                                                    disabled={plan.disabled}
+                                                                >
+                                                                    {plan.cta}
+                                                                </Button>
+                                                            )}
                                                         </CardFooter>
                                                     </Card>
                                                 </div>
