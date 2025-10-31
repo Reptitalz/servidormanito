@@ -10,8 +10,13 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import Stripe from 'stripe';
 
-// Ensure the Stripe secret key is set in environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  console.warn("STRIPE_SECRET_KEY is not set. Payment processing will not work.");
+}
+
+const stripe = new Stripe(stripeSecretKey || '', {
   apiVersion: '2024-06-20',
 });
 
@@ -46,13 +51,14 @@ const createCheckoutSessionFlow = ai.defineFlow(
     outputSchema: CheckoutOutputSchema,
   },
   async (input) => {
-    // Note: For a real application, you would pass a customer ID from your database
-    // and store the checkout session ID.
+    if (!stripeSecretKey) {
+        throw new Error('Stripe secret key is not configured. Cannot process payments.');
+    }
 
     const YOUR_DOMAIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'gpay'],
+      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
