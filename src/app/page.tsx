@@ -120,7 +120,7 @@ export default function Home() {
                       <span className="text-muted-foreground">{plan.period}</span>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-1">
                     <ul className="space-y-3">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-2">

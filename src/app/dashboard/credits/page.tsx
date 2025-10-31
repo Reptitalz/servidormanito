@@ -14,6 +14,7 @@ import { collection } from "firebase/firestore";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import GooglePayButton from "@/components/payments/GooglePayButton";
+import Link from 'next/link';
 
 interface Assistant {
   id: string;
