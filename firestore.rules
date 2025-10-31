@@ -116,7 +116,8 @@ service cloud.firestore {
      * @description Collection group query for assistants, only for admins.
      */
     match /{path=**}/assistants/{assistantId} {
-      allow get, list: if isAdmin();
+      allow get: if isAdmin();
+      allow list: if isAdmin();
     }
   }
 }
