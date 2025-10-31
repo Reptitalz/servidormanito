@@ -8,11 +8,16 @@ import Link from "next/link";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMemo } from "react";
 
 interface Assistant {
   id: string;
   name: string;
   status: 'Activo' | 'Inactivo' | 'Pausado';
+  usage: {
+    messagesUsed: number;
+    messageLimit: number;
+  };
 }
 
 interface Client {
@@ -37,17 +42,23 @@ export default function Dashboard() {
   const { data: assistants, isLoading: isAssistantsLoading } = useCollection<Assistant>(assistantsQuery);
   const { data: clients, isLoading: isClientsLoading } = useCollection<Client>(clientsQuery);
 
-  const activeAssistants = assistants?.filter(a => a.status === 'Activo').length || 0;
   const totalAssistants = assistants?.length || 0;
   const totalClients = clients?.length || 0;
   
-  const summaryData = {
-    credits: {
-      used: 46.8,
-      total: 100,
-    }
-  };
-  
+  const { usedCredits, totalCredits } = useMemo(() => {
+    if (!assistants) return { usedCredits: 0, totalCredits: 0 };
+    
+    const totalMessagesUsed = assistants.reduce((sum, assistant) => sum + (assistant.usage?.messagesUsed || 0), 0);
+    const totalMessageLimit = assistants.reduce((sum, assistant) => sum + (assistant.usage?.messageLimit || 0), 0);
+    
+    // Assuming 1 credit = 1000 messages
+    return {
+      usedCredits: totalMessagesUsed / 1000,
+      totalCredits: totalMessageLimit / 1000
+    };
+  }, [assistants]);
+
+
   const AssistantsCard = () => {
     if (isAssistantsLoading) {
       return (
@@ -74,7 +85,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{totalAssistants}</div>
             <p className="text-xs text-muted-foreground">
-              Crea todos los que necesites. {activeAssistants} activos.
+              Crea todos los que necesites.
             </p>
             <Button asChild size="sm" className="mt-4 w-full">
               <Link href="/dashboard/asistentes">
@@ -123,6 +134,43 @@ export default function Dashboard() {
     )
   }
 
+  const CreditsCard = () => {
+    if (isAssistantsLoading) {
+        return (
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Créditos Usados</CardTitle>
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-8 w-1/2 mb-2" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-9 w-full mt-4" />
+                </CardContent>
+            </Card>
+        )
+    }
+    return (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Créditos Usados</CardTitle>
+            <CreditCard className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{usedCredits.toFixed(1)}K / {totalCredits.toFixed(1)}K</div>
+            <p className="text-xs text-muted-foreground">
+              Tu ciclo se renueva pronto.
+            </p>
+             <Button asChild size="sm" variant="secondary" className="mt-4 w-full">
+               <Link href="/dashboard/credits">
+                Comprar Créditos <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+    )
+  }
+
 
   return (
     <>
@@ -134,23 +182,7 @@ export default function Dashboard() {
       <div className="grid gap-4 md:gap-6 pt-4 md:grid-cols-2 lg:grid-cols-3">
         <AssistantsCard />
         <ClientsCard />
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Créditos Usados</CardTitle>
-            <CreditCard className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryData.credits.used.toFixed(1)} / {summaryData.credits.total}K</div>
-            <p className="text-xs text-muted-foreground">
-              Tu ciclo se renueva pronto.
-            </p>
-             <Button asChild size="sm" variant="secondary" className="mt-4 w-full">
-               <Link href="/dashboard/credits">
-                Comprar Créditos <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <CreditsCard />
       </div>
 
        <div className="pt-4">
