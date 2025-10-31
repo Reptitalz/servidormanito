@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useCollection, useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { collection } from "firebase/firestore";
@@ -15,6 +15,8 @@ import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import GooglePayButton from "@/components/payments/GooglePayButton";
 import Link from 'next/link';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Assistant {
   id: string;
@@ -249,9 +251,43 @@ export default function CreditsPage() {
                         </div>
                          <div className="flex items-center justify-between">
                             <span className="text-muted-foreground">Método de Pago</span>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">Añadir Método</Button>
-                            </div>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm">Añadir Método</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Añadir Método de Pago</DialogTitle>
+                                        <DialogDescription>
+                                            Ingresa los datos de tu tarjeta de crédito. La información es segura.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="card-name">Nombre en la tarjeta</Label>
+                                            <Input id="card-name" placeholder="Juan Pérez" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="card-number">Número de tarjeta</Label>
+                                            <Input id="card-number" placeholder="**** **** **** 1234" />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="expiry-date">Vencimiento</Label>
+                                                <Input id="expiry-date" placeholder="MM/AA" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="cvc">CVC</Label>
+                                                <Input id="cvc" placeholder="123" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="button" variant="outline">Cancelar</Button>
+                                        <Button type="submit">Guardar Tarjeta</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </CardContent>
                     <CardFooter className="justify-start">
