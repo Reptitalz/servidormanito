@@ -16,7 +16,6 @@ import { signOut } from 'firebase/auth';
 const navLinks = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit },
-  { href: "/admin/memory", label: "Memory", icon: Database },
 ];
 
 const MobileBottomNav = () => {
@@ -24,7 +23,7 @@ const MobileBottomNav = () => {
 
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
-            <nav className="grid grid-cols-3 items-center justify-around h-16">
+            <nav className="grid grid-cols-2 items-center justify-around h-16">
                 {navLinks.map(link => {
                     const isActive = pathname === link.href;
                     return (

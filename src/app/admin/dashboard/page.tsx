@@ -46,21 +46,6 @@ export default function AdminDashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Uso de Memoria</CardTitle>
-            <Database className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summaryData.memory.used} MB / 1 GB</div>
-            <Progress value={memoryPercentage} className="mt-2 h-2" />
-            <Button asChild size="sm" variant="secondary" className="mt-4 w-full">
-              <Link href="/admin/memory">
-                Gestionar Memoria <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </>
   );
