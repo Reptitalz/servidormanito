@@ -12,18 +12,13 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const initialLinkedDevices = [
-    { id: 1, name: "Chrome on Mac OS", lastActive: "Ahora mismo", icon: Laptop },
-    // { id: 2, name: "iPhone 15 Pro", lastActive: "Hace 2 horas", icon: Smartphone },
-];
-
 export default function ConectarPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const router = useRouter();
     const params = useParams();
     const assistantId = params.id;
     const [status, setStatus] = useState<'loading' | 'qr_received' | 'connected' | 'error' | 'already_connected'>('loading');
-    const [linkedDevices, setLinkedDevices] = useState(initialLinkedDevices);
+    const [linkedDevices, setLinkedDevices] = useState<{id: number, name: string, lastActive: string, icon: React.ElementType}[]>([]);
 
     useEffect(() => {
         if (linkedDevices.length > 0) {
