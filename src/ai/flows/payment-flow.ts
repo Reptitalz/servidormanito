@@ -27,7 +27,7 @@ export type CheckoutInput = z.infer<typeof CheckoutInputSchema>;
 const CheckoutOutputSchema = z.object({
   checkoutUrl: z.string().describe('The URL for the Stripe Checkout session.'),
 });
-export type CheckoutOutput = z-infer<typeof CheckoutOutputSchema>;
+export type CheckoutOutput = z.infer<typeof CheckoutOutputSchema>;
 
 /**
  * Creates a Stripe checkout session.
