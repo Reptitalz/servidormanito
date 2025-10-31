@@ -16,10 +16,9 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth, useFirestore, useUser } from "@/firebase";
+import { useAuth, useFirestore, useUser, FirestorePermissionError, errorEmitter } from "@/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { FirestorePermissionError, errorEmitter } from "@/firebase";
 
 const baseSteps = [
     { name: "Nombre del Asistente", icon: Wand2 },
@@ -193,14 +192,13 @@ export default function CreateAssistantPage() {
                 router.push('/dashboard/asistentes/creando');
             })
             .catch((serverError) => {
-                console.error("Firestore Error:", serverError);
                 const permissionError = new FirestorePermissionError({
                     path: assistantsCollection.path,
                     operation: 'create',
                     requestResourceData: assistantData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
-                setIsSubmitting(false); // Re-enable button on error
+                setIsSubmitting(false);
             });
     };
 
@@ -485,3 +483,4 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
