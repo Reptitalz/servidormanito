@@ -55,7 +55,7 @@ const createCheckoutSessionFlow = ai.defineFlow(
         throw new Error('Stripe secret key is not configured. Cannot process payments.');
     }
 
-    const YOUR_DOMAIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const YOUR_DOMAIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
