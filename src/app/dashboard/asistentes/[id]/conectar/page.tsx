@@ -6,17 +6,31 @@ import { useRouter, useParams } from 'next/navigation';
 import QRCode from 'qrcode';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Smartphone, Laptop, Trash2, PowerOff } from 'lucide-react';
+import { ArrowLeft, Laptop, PowerOff, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ConectarPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const router = useRouter();
     const params = useParams();
-    const assistantId = params.id;
+    const assistantId = params.id as string;
+    
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const assistantRef = useMemoFirebase(() => {
+        if (!user || !assistantId) return null;
+        return doc(firestore, 'users', user.uid, 'assistants', assistantId);
+    }, [user, assistantId, firestore]);
+
+    const { data: assistant, isLoading: isAssistantLoading } = useDoc(assistantRef);
+
     const [status, setStatus] = useState<'loading' | 'qr_received' | 'connected' | 'error' | 'already_connected'>('loading');
     const [linkedDevices, setLinkedDevices] = useState<{id: number, name: string, lastActive: string, icon: React.ElementType}[]>([]);
 
@@ -72,10 +86,18 @@ export default function ConectarPage() {
     }, [router, status, linkedDevices]);
 
     const handleDisconnect = (deviceId: number) => {
-        // Here you would call an API to disconnect the device
-        // For simulation, we'll just remove it from the state
         setLinkedDevices(devices => devices.filter(d => d.id !== deviceId));
-        setStatus('loading'); // Go back to QR polling state
+        setStatus('loading');
+    }
+    
+    const getTitle = () => {
+        if (isAssistantLoading) {
+            return <Skeleton className="h-6 w-48" />;
+        }
+        if (assistant) {
+            return `Conectar: ${assistant.name}`;
+        }
+        return "Conectar Asistente";
     }
 
     return (
@@ -89,7 +111,7 @@ export default function ConectarPage() {
                             </Link>
                         </Button>
                         <div>
-                            <CardTitle>Conectar Asistente ({assistantId})</CardTitle>
+                            <CardTitle>{getTitle()}</CardTitle>
                              <CardDescription>
                                 {status === 'already_connected'
                                     ? 'Gestiona la sesión activa de tu asistente.'
