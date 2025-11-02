@@ -15,7 +15,7 @@ nextServer.on('close', (code) => {
 });
 
 // Start the Baileys gateway
-const waGateway = spawn('node', [path.join(__dirname, 'whatsapp-gateway', 'index.js')], {
+const waGateway = spawn('node', ['-r', 'dotenv/config', path.join(__dirname, 'whatsapp-gateway', 'index.js')], {
   stdio: 'inherit',
   env: process.env
 });
