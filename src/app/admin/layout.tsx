@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Bot, Home, LogOut, Users, BrainCircuit, Database } from "lucide-react";
+import { Bell, Bot, Home, LogOut, Users, BrainCircuit, Database, Activity } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -17,6 +17,7 @@ import { signOut } from 'firebase/auth';
 const navLinks = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit },
+  { href: "/admin/diagnostics", label: "Diagnóstico", icon: Activity },
 ];
 
 const MobileBottomNav = () => {
@@ -24,7 +25,7 @@ const MobileBottomNav = () => {
 
     return (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm md:hidden z-50">
-            <nav className="grid grid-cols-2 items-center justify-around h-16">
+            <nav className="grid grid-cols-3 items-center justify-around h-16">
                 {navLinks.map(link => {
                     const isActive = pathname === link.href;
                     return (

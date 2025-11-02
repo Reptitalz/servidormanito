@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Link from 'next/link';
+import { Button } from '../ui/button';
 
 type Status = 'online' | 'degraded' | 'offline' | 'loading';
 
@@ -27,16 +29,18 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({ label, status, toolti
     <TooltipProvider delayDuration={0}>
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                    <div className="relative flex h-3 w-3">
-                        <span className={cn(
-                            "absolute inline-flex h-full w-full rounded-full opacity-75",
-                            pulse && `animate-ping ${color}`
-                        )}></span>
-                        <span className={cn("relative inline-flex rounded-full h-3 w-3", color)}></span>
-                    </div>
-                    <span className="text-sm">{label}</span>
-                </div>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 h-auto px-2 py-1" asChild>
+                    <Link href="/admin/diagnostics">
+                        <div className="relative flex h-3 w-3">
+                            <span className={cn(
+                                "absolute inline-flex h-full w-full rounded-full opacity-75",
+                                pulse && `animate-ping ${color}`
+                            )}></span>
+                            <span className={cn("relative inline-flex rounded-full h-3 w-3", color)}></span>
+                        </div>
+                        <span className="text-sm">{label}</span>
+                    </Link>
+                </Button>
             </TooltipTrigger>
             <TooltipContent side="top">
                 <p>{tooltip}</p>
@@ -118,7 +122,7 @@ export function SystemStatus() {
   return (
     <div className="bg-gray-800/50 border-t border-gray-700/50">
         <div className="container mx-auto px-4 md:px-8 py-2 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
                 <StatusIndicator label="Frontend" status={frontendStatus} tooltip={getFrontendTooltip()} />
                 <StatusIndicator label="Gateway" status={gatewayStatus} tooltip={getGatewayTooltip()} />
             </div>
