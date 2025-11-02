@@ -5,12 +5,14 @@ import pino from 'pino';
 import axios from 'axios';
 import fs from 'fs/promises';
 import FormData from 'form-data';
+import os from 'os';
+import path from 'path';
 
 // --- CONFIGURACIÓN ---
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
 const NEXTJS_WEBHOOK_URL = `${BASE_URL}/api/webhook`;
 const NEXTJS_QR_URL = `${BASE_URL}/api/qr`;
-const SESSION_FILE_PATH = './wa-session';
+const SESSION_FILE_PATH = path.join(os.tmpdir(), 'wa-session');
 // --- FIN CONFIGURACIÓN ---
 
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
