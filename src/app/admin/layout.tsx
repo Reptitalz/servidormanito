@@ -17,7 +17,7 @@ import { signOut } from 'firebase/auth';
 const navLinks = [
   { href: "/admin/dashboard", label: "Dashboard", icon: Home },
   { href: "/admin/monitor", label: "Monitor", icon: BrainCircuit },
-  { href: "/admin/diagnostics", label: "Diagnóstico", icon: Activity },
+  { href: "/diagnostics", label: "Diagnóstico", icon: Activity },
 ];
 
 const MobileBottomNav = () => {

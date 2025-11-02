@@ -30,7 +30,7 @@ const StatusIndicator: React.FC<StatusIndicatorProps> = ({ label, status, toolti
         <Tooltip>
             <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2 h-auto px-2 py-1" asChild>
-                    <Link href="/admin/diagnostics">
+                    <Link href="/diagnostics">
                         <div className="relative flex h-3 w-3">
                             <span className={cn(
                                 "absolute inline-flex h-full w-full rounded-full opacity-75",
