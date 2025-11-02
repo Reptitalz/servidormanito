@@ -9,14 +9,18 @@ import os from 'os';
 import path from 'path';
 
 // --- CONFIGURACIÓN ---
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+// En desarrollo, el gateway se comunica con Next.js a través de 127.0.0.1.
+// En producción, App Hosting enruta las solicitudes al servicio correcto.
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002' 
+  : 'http://127.0.0.1:9002';
+
 const NEXTJS_WEBHOOK_URL = `${BASE_URL}/api/webhook`;
 const NEXTJS_QR_URL = `${BASE_URL}/api/qr`;
 const NEXTJS_STATUS_URL = `${BASE_URL}/api/status`;
 const SESSION_FILE_PATH = path.join(os.tmpdir(), 'wa-session');
 // --- FIN CONFIGURACIÓN ---
 
-// Configuración de Pino para evitar conflictos.
 const logger = pino({
     level: 'info',
     transport: {
