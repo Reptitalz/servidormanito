@@ -7,8 +7,8 @@ WORKDIR /usr/src/app
 # 3. Copiar package.json y package-lock.json primero
 COPY package*.json ./
 
-# 4. Instalar dependencias de producción
-RUN npm install --omit=dev
+# 4. Instalar dependencias de producción de forma limpia
+RUN npm ci --omit=dev
 
 # 5. Copiar el resto de la aplicación
 COPY . .
