@@ -8,6 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # 4. Instalar dependencias de producción de forma limpia
+# The `npm ci` command can only install with an existing package-lock.json
 RUN npm ci --omit=dev
 
 # 5. Copiar el resto de la aplicación
