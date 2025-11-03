@@ -1,21 +1,20 @@
-# 1. Base oficial de Node.js con Git incluido
+# 1. Imagen base de Node.js con Git
 FROM node:20
 
-# 2. Directorio de trabajo dentro del contenedor
+# 2. Directorio de trabajo
 WORKDIR /usr/src/app
 
-# 3. Copiar package.json y package-lock.json primero
+# 3. Copiar archivos de dependencias
 COPY package*.json ./
 
-# 4. Instalar dependencias de producción de forma limpia
-# The `npm ci` command can only install with an existing package-lock.json
-RUN npm ci --omit=dev
+# 4. Instalar dependencias
+RUN npm install --omit=dev
 
-# 5. Copiar el resto de la aplicación
+# 5. Copiar el resto del código
 COPY . .
 
-# 6. Puerto que usará la app en Cloud Run
+# 6. Exponer el puerto
 EXPOSE 8080
 
-# 7. Comando para iniciar la aplicación
+# 7. Comando de inicio
 CMD ["node", "index.js"]
