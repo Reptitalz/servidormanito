@@ -30,7 +30,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--set-env-vars'
-    - 'NEXTJS_APP_URL=https://heymanito-servidormanito-app.web.app' # URL PÚBLICA DE TU APP
+    - 'NEXTJS_APP_URL=https://studio--studio-1128284178-7d125.us-central1.hosted.app' # URL PÚBLICA DE TU APP
     - '--allow-unauthenticated' # Permite que el servicio haga peticiones a internet
     - '--quiet'
   id: 'Deploy'
