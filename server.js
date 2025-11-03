@@ -1,48 +1,52 @@
+// orchestrator.js
 const { spawn } = require('child_process');
 const path = require('path');
 
-// The entrypoint for the Next.js standalone server is server.js inside .next/standalone
-// We need to execute that file, not this one.
+// === PATHS ===
 const nextServerPath = path.join(__dirname, 'server.js');
+const waGatewayPath = path.join(__dirname, 'whatsapp-gateway', 'index.js');
 
-// Start the Next.js server process
+// === START NEXT.JS SERVER ===
+console.log('🚀 Starting Next.js server...');
 const nextServer = spawn('node', [nextServerPath], {
   stdio: 'inherit',
-  env: { ...process.env } // Pass environment variables
+  env: { ...process.env }
+});
+
+nextServer.on('error', (err) => {
+  console.error('❌ Failed to start Next.js server:', err);
+  process.exit(1);
 });
 
 nextServer.on('close', (code) => {
   console.log(`Next.js server exited with code ${code}`);
-  if (code !== 0) {
-    process.exit(code); // Exit if Next.js server fails
-  }
+  if (code !== 0) process.exit(code);
 });
 
-// Start the Baileys gateway process
-const waGatewayPath = path.join(__dirname, 'whatsapp-gateway', 'index.js');
+// === START WHATSAPP GATEWAY ===
+console.log('🤖 Starting WhatsApp gateway...');
 const waGateway = spawn('node', ['-r', 'dotenv/config', waGatewayPath], {
   stdio: 'inherit',
-  env: { ...process.env } // Pass environment variables
+  env: { ...process.env }
+});
+
+waGateway.on('error', (err) => {
+  console.error('❌ Failed to start WhatsApp gateway:', err);
+  process.exit(1);
 });
 
 waGateway.on('close', (code) => {
   console.log(`WhatsApp gateway exited with code ${code}`);
-  if (code !== 0) {
-    process.exit(code); // Exit if the gateway fails
-  }
+  if (code !== 0) process.exit(code);
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('Caught interrupt signal, shutting down...');
-  nextServer.kill('SIGINT');
-  waGateway.kill('SIGINT');
-  process.exit();
-});
+// === GRACEFUL SHUTDOWN ===
+const shutdown = (signal) => {
+  console.log(`Caught ${signal}, shutting down gracefully...`);
+  nextServer.kill(signal);
+  waGateway.kill(signal);
+  setTimeout(() => process.exit(), 500);
+};
 
-process.on('SIGTERM', () => {
-  console.log('Caught terminate signal, shutting down...');
-  nextServer.kill('SIGTERM');
-  waGateway.kill('SIGTERM');
-  process.exit();
-});
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
