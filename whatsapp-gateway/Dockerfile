@@ -16,5 +16,8 @@ COPY . .
 # 6. Exponer el puerto
 EXPOSE 8080
 
+# 6.1. Definir URL de tu app Next.js
+ENV NEXTJS_APP_URL=https://studio--studio-1128284178-7d125.us-central1.hosted.app
+
 # 7. Comando de inicio
 CMD ["node", "index.js"]

@@ -10,7 +10,7 @@ import path from 'path';
 import http from 'http';
 
 // === CONFIGURACIÓN ===
-const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || 'http://127.0.0.1:9002';
+const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL;
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
 const NEXTJS_QR_URL = `${NEXTJS_APP_URL}/api/qr`;
 const NEXTJS_STATUS_URL = `${NEXTJS_APP_URL}/api/status`;
