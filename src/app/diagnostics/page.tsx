@@ -2,10 +2,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Server, Smartphone, CheckCircle2, AlertTriangle, XCircle, Loader } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Activity, Server, Smartphone, CheckCircle2, AlertTriangle, XCircle, Loader, Beaker } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 type Status = 'online' | 'degraded' | 'offline' | 'loading';
 
@@ -16,10 +18,10 @@ const statusConfig: Record<Status, { text: string; color: string; icon: React.El
     offline: { text: 'Fuera de Línea', color: 'text-red-500', icon: XCircle },
 };
 
-const StatusCard = ({ title, status, description, icon: Icon }: { title: string; status: Status; description: string, icon: React.ElementType }) => {
+const StatusCard = ({ title, status, description, icon: Icon, children }: { title: string; status: Status; description: string, icon: React.ElementType, children?: React.ReactNode }) => {
     const config = statusConfig[status];
     return (
-        <Card>
+        <Card className="flex flex-col">
             <CardHeader>
                 <div className="flex items-center gap-4">
                     <Icon className="h-8 w-8 text-muted-foreground" />
@@ -29,13 +31,14 @@ const StatusCard = ({ title, status, description, icon: Icon }: { title: string;
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
                 <div className="flex items-center gap-3">
                     <config.icon className={cn("h-6 w-6", config.color, status === 'loading' && 'animate-spin')} />
                     <span className={cn("text-lg font-semibold", config.color)}>{config.text}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">{description}</p>
             </CardContent>
+            {children}
         </Card>
     )
 }
@@ -44,6 +47,8 @@ export default function DiagnosticsPage() {
     const [frontendStatus, setFrontendStatus] = useState<Status>('loading');
     const [gatewayStatus, setGatewayStatus] = useState<Status>('loading');
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+    const [isTesting, setIsTesting] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -76,6 +81,31 @@ export default function DiagnosticsPage() {
 
         return () => clearInterval(intervalId);
     }, []);
+
+    const handleTestGateway = async () => {
+        setIsTesting(true);
+        const gatewayUrl = 'https://servidormanito-722319793837.europe-west1.run.app';
+        try {
+            const response = await fetch(gatewayUrl);
+            const text = await response.text();
+            if (response.ok && text === 'OK') {
+                toast({
+                    title: '¡Éxito!',
+                    description: `El gateway respondió correctamente con "OK".`,
+                });
+            } else {
+                 throw new Error(`Respuesta inesperada: ${text}`);
+            }
+        } catch (error: any) {
+             toast({
+                variant: 'destructive',
+                title: 'Error de Conexión',
+                description: `No se pudo conectar con el gateway: ${error.message}`,
+            });
+        } finally {
+            setIsTesting(false);
+        }
+    }
     
     const getGatewayDescription = () => {
         switch (gatewayStatus) {
@@ -136,7 +166,14 @@ export default function DiagnosticsPage() {
                     status={gatewayStatus}
                     description={getGatewayDescription()}
                     icon={Smartphone}
-                />
+                >
+                    <CardFooter>
+                        <Button onClick={handleTestGateway} disabled={isTesting} className="w-full">
+                           {isTesting ? <Loader className="mr-2 h-4 w-4 animate-spin" /> : <Beaker className="mr-2 h-4 w-4" />}
+                           {isTesting ? "Probando..." : "Prueba de Conexión"}
+                        </Button>
+                    </CardFooter>
+                </StatusCard>
             </div>
         </div>
     );
