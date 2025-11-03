@@ -4,6 +4,7 @@
   "description": "Gateway for processing WhatsApp messages with Baileys.",
   "main": "index.js",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
