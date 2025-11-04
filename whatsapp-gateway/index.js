@@ -13,13 +13,11 @@ import http from 'http';
 // === CONFIGURACIÓN ===
 const NEXTJS_APP_URL = "https://studio--studio-1128284178-7d125.us-central1.hosted.app";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
-// El QR ya no se envía, el frontend lo pide
-// const NEXTJS_QR_URL = `${NEXTJS_APP_URL}/api/qr`; 
 const SESSION_FILE_PATH = path.join(os.tmpdir(), 'wa-session');
 // =====================
 
 let gatewayStatus = 'disconnected'; // disconnected, qr, connected, error
-let qrCode = null; // Almacenamos el QR en memoria
+let qrCode = null; // QR en memoria
 
 const logger = pino({
   level: 'info',
@@ -30,7 +28,7 @@ async function connectToWhatsApp() {
   try {
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_FILE_PATH);
 
-    const sock = makeWASocket.default({
+    const sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
       logger,
@@ -43,7 +41,7 @@ async function connectToWhatsApp() {
       if (qr) {
         logger.info('Nuevo código QR generado');
         gatewayStatus = 'qr';
-        qrCode = qr; // Almacenamos el QR
+        qrCode = qr;
       }
 
       if (connection === 'close') {
@@ -55,7 +53,7 @@ async function connectToWhatsApp() {
         qrCode = null;
 
         if (shouldReconnect) {
-          setTimeout(connectToWhatsApp, 3000); // intenta reconectar
+          setTimeout(connectToWhatsApp, 3000);
         } else {
           try {
             await fsp.rm(SESSION_FILE_PATH, { recursive: true, force: true });
@@ -67,7 +65,7 @@ async function connectToWhatsApp() {
       } else if (connection === 'open') {
         logger.info('✅ Conectado con WhatsApp');
         gatewayStatus = 'connected';
-        qrCode = null; // Limpiamos el QR una vez conectados
+        qrCode = null;
       }
     });
 
@@ -134,7 +132,6 @@ async function connectToWhatsApp() {
 
 // === Servidor HTTP para Cloud Run ===
 const server = http.createServer((req, res) => {
-  // Añadir cabeceras CORS para permitir peticiones desde el frontend
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -170,4 +167,4 @@ server.listen(PORT, () => {
 process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
 process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
 
-logger.info('NEXTJS_APP_URL:', process.env.NEXTJS_APP_URL);
+logger.info('NEXTJS_APP_URL:', NEXTJS_APP_URL);
