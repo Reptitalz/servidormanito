@@ -154,15 +154,23 @@ async function connectToWhatsApp(assistantId) {
             const reason = (lastDisconnect?.error)?.output?.statusCode;
             const shouldReconnect = reason !== DisconnectReason.loggedOut;
             
-            logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}. Reintentando: ${shouldReconnect}`);
+            logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}.`);
+
+            if (reason === 405) { // Error 405: Sesión inválida o conflicto
+                 logger.error(`[${assistantId}] Error 405: Sesión inválida. Limpiando y reintentando desde cero...`);
+                 await stopBotInstance(assistantId, false); // Detener sin eliminar de activeBots
+                 setTimeout(() => createBotInstance(assistantId), 5000); // Reintentar después de 5 segundos
+                 return;
+            }
 
             current.qr = null;
             if (shouldReconnect) {
                 current.status = 'disconnected';
+                logger.info(`[${assistantId}] Reintentando conexión...`);
                 connectToWhatsApp(assistantId); // Llama a la función para reconectar
             } else {
                 current.status = 'disconnected';
-                 logger.error(`[${assistantId}] Sesión cerrada permanentemente. Eliminando credenciales.`);
+                 logger.error(`[${assistantId}] Sesión cerrada permanentemente. Limpiando credenciales.`);
                 await stopBotInstance(assistantId); // Llama a la función completa de limpieza
             }
         } else if (connection === 'open') {
@@ -215,8 +223,12 @@ async function connectToWhatsApp(assistantId) {
 
 function createBotInstance(assistantId) {
     if (activeBots.has(assistantId)) {
-        logger.warn(`El bot para ${assistantId} ya está en proceso.`);
-        return activeBots.get(assistantId);
+        // Si ya existe pero no tiene socket, puede ser un reintento.
+        const existingBot = activeBots.get(assistantId);
+        if (existingBot.sock) {
+             logger.warn(`El bot para ${assistantId} ya está en proceso.`);
+             return existingBot;
+        }
     }
     logger.info(`Iniciando nueva instancia de bot para el asistente: ${assistantId}`);
 
@@ -260,25 +272,34 @@ function syncBotsWithFirestore() {
   );
 }
 
-async function stopBotInstance(assistantId) {
+async function stopBotInstance(assistantId, removeFromMap = true) {
   const bot = activeBots.get(assistantId);
   if (!bot) return;
 
   logger.warn(`Deteniendo bot ${assistantId}...`);
   if (bot.sock) {
     try {
-      await bot.sock.logout();
+      // No esperar a la desconexión, solo iniciarla.
+      bot.sock.logout();
+      bot.sock.ev.removeAllListeners();
     } catch (e) {
       logger.error(`[${assistantId}] Error durante el logout: ${e.message}`);
     }
+    bot.sock = null;
   }
   
   const sessionPath = path.join(SESSION_BASE_PATH, assistantId);
   await fsp.rm(sessionPath, { recursive: true, force: true }).catch(e => logger.error(`No se pudo eliminar la carpeta de sesión para ${assistantId}: ${e.message}`));
   
-  activeBots.delete(assistantId);
-  logger.info(`Bot ${assistantId} detenido y eliminado.`);
+  if (removeFromMap) {
+      activeBots.delete(assistantId);
+      logger.info(`Bot ${assistantId} detenido y eliminado.`);
+  } else {
+      logger.info(`Credenciales de sesión para ${assistantId} eliminadas. Se reintentará la conexión.`);
+  }
 }
 
 process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
 process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
+
+    
