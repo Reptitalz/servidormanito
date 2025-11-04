@@ -21,6 +21,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     try {
+      if (!auth) return;
       await signOut(auth);
       router.push('/');
     } catch (error) {
@@ -35,7 +36,7 @@ export function Header() {
   
   const getDisplayName = () => {
     return user?.displayName;
-  }
+  };
   
   const getDisplayEmail = () => {
      return user?.email;
@@ -51,10 +52,6 @@ export function Header() {
             <span>Manito!</span>
           </div>
         </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-white/90">
-          <Link href="#features" className="hover:text-white transition-colors">Características</Link>
-          <Link href="#pricing" className="hover:text-white transition-colors">Precios</Link>
-        </nav>
         <div className="flex items-center gap-4">
           {isUserLoading ? (
             <Skeleton className="h-10 w-40 rounded-md bg-white/20" />
