@@ -60,19 +60,19 @@ const server = http.createServer((req, res) => {
 
   if (requestUrl.pathname === '/status') {
     let botState = activeBots.get(assistantId);
-    // Si el bot no se encuentra, créalo.
     if (!botState) {
         logger.info(`[${assistantId}] No encontrado en memoria. Iniciando instancia bajo demanda...`);
-        createBotInstance(assistantId);
-        botState = activeBots.get(assistantId); // Recupera el estado recién creado
+        botState = createBotInstance(assistantId);
     }
+    
+    const responsePayload = { status: botState.status, qr: null };
+    if (botState.status === 'qr') {
+        responsePayload.qr = botState.qr;
+    }
+    
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: botState ? botState.status : 'loading' }));
+    res.end(JSON.stringify(responsePayload));
 
-  } else if (requestUrl.pathname === '/qr') {
-    const botState = activeBots.get(assistantId);
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ qr: botState ? botState.qr : null }));
   } else if (requestUrl.pathname === '/' || requestUrl.pathname === '/_health' || requestUrl.pathname === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('Hey Manito! Gateway - OK');
@@ -216,7 +216,7 @@ async function connectToWhatsApp(assistantId) {
 function createBotInstance(assistantId) {
     if (activeBots.has(assistantId)) {
         logger.warn(`El bot para ${assistantId} ya está en proceso.`);
-        return;
+        return activeBots.get(assistantId);
     }
     logger.info(`Iniciando nueva instancia de bot para el asistente: ${assistantId}`);
 
@@ -227,6 +227,7 @@ function createBotInstance(assistantId) {
     };
     activeBots.set(assistantId, botState);
     connectToWhatsApp(assistantId).catch(e => logger.error(`[${assistantId}] Fallo al conectar: ${e.message}`));
+    return botState;
 }
 
 function syncBotsWithFirestore() {

@@ -4,13 +4,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import QRCode from 'qrcode';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Laptop, PowerOff, Trash2, Wifi, WifiOff, QrCode as QrCodeIcon } from 'lucide-react';
+import { ArrowLeft, Wifi, WifiOff } from 'lucide-react';
 import Link from 'next/link';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,6 +17,11 @@ const GATEWAY_URL = 'https://servidormanito-722319793837.europe-west1.run.app';
 const GATEWAY_SECRET = process.env.NEXT_PUBLIC_GATEWAY_SECRET;
 
 type GatewayStatus = 'loading' | 'qr' | 'connected' | 'disconnected' | 'error' | 'not_found';
+
+interface GatewayStatusResponse {
+    status: GatewayStatus;
+    qr?: string;
+}
 
 export default function ConectarPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,48 +54,32 @@ export default function ConectarPage() {
 
         const pollStatus = async () => {
             try {
-                // Call the gateway directly with the secret key
-                const headers = new Headers({
-                    'X-Gateway-Secret': GATEWAY_SECRET
-                });
-
+                const headers = new Headers({ 'X-Gateway-Secret': GATEWAY_SECRET });
                 const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`, { headers });
+                
                 if (!statusRes.ok) {
-                    if (statusRes.status === 403) throw new Error('Acceso denegado al gateway. Verifica la llave secreta.');
-                    throw new Error('Failed to fetch status from gateway');
+                    if (statusRes.status === 403) throw new Error('Acceso denegado al gateway.');
+                    throw new Error('No se pudo obtener el estado del gateway.');
                 }
-                const { status } = await statusRes.json();
+                
+                const { status, qr } = await statusRes.json() as GatewayStatusResponse;
                 
                 setGatewayStatus(status);
 
-                if (status === 'qr') {
+                if (status === 'qr' && qr) {
                     setLoadingMessage("¡Escanea el código para conectar!");
-                    // Only fetch QR if we don't have it, to prevent flickering
-                    if (!qrCodeValue) { 
-                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`, { headers });
-                        if (!qrRes.ok) throw new Error('Failed to fetch QR from gateway');
-                        const { qr } = await qrRes.json();
-                        
-                        if (qr) {
-                            setQrCodeValue(qr);
-                            // Defer canvas drawing to the next render cycle after state is set
-                        }
-                    }
+                    setQrCodeValue(qr);
                 } else if (status === 'connected') {
                     setLoadingMessage("¡Conectado! Redirigiendo...");
-                    setTimeout(() => {
-                        router.push('/dashboard/asistentes');
-                    }, 2000);
-                } else if (status === 'not_found') {
-                    setLoadingMessage("Asistente no encontrado en el gateway. Esperando sincronización...");
-                } else {
-                     setLoadingMessage("Esperando conexión del gateway...");
+                    setTimeout(() => router.push('/dashboard/asistentes'), 2000);
+                } else if (status === 'not_found' || status === 'loading' || status === 'disconnected') {
+                    setLoadingMessage("Esperando conexión del gateway...");
                 }
 
             } catch (error: any) {
                 console.error("Error polling gateway status:", error);
                 setGatewayStatus('error');
-                setLoadingMessage(error.message || "Error de conexión. Verifica la consola.");
+                setLoadingMessage(error.message || "Error de conexión con el gateway.");
             }
         };
 
@@ -102,7 +88,7 @@ export default function ConectarPage() {
 
         return () => clearInterval(intervalId);
 
-    }, [assistantId, router, qrCodeValue]); // qrCodeValue dependency to avoid re-fetching QR
+    }, [assistantId, router]);
 
     useEffect(() => {
         if (qrCodeValue && canvasRef.current) {
@@ -121,7 +107,7 @@ export default function ConectarPage() {
 
     const renderStatusContent = () => {
         // Prioritize showing the QR code if we have it
-        if (qrCodeValue && gatewayStatus === 'qr') {
+        if (gatewayStatus === 'qr' && qrCodeValue) {
              return (
                 <>
                     <canvas ref={canvasRef} className="rounded-lg" />
