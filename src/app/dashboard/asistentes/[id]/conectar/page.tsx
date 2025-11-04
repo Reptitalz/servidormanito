@@ -16,9 +16,9 @@ import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 
-const GATEWAY_URL = 'https://servidormanito-722319793837.europe-west1.run.app';
+const GATEWAY_URL = 'https://servidormanito-7-west1.run.app';
 
-type GatewayStatus = 'loading' | 'qr' | 'connected' | 'disconnected' | 'error';
+type GatewayStatus = 'loading' | 'qr' | 'connected' | 'disconnected' | 'error' | 'not_found';
 
 export default function ConectarPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,18 +44,19 @@ export default function ConectarPage() {
 
         const pollStatus = async () => {
             try {
-                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`);
-                if (!statusRes.ok) throw new Error('Failed to fetch status');
+                // We now poll our own API route which acts as a proxy
+                const statusRes = await fetch(`/api/status?assistantId=${assistantId}`);
+                if (!statusRes.ok) throw new Error('Failed to fetch status from API proxy');
                 const { status } = await statusRes.json();
                 
                 setGatewayStatus(status);
 
                 if (status === 'qr') {
                     setLoadingMessage("¡Escanea el código para conectar!");
-                    // Only fetch QR if we don't have it already
                     if (!qrCodeValue) {
-                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
-                        if (!qrRes.ok) throw new Error('Failed to fetch QR');
+                        // Fetch QR via our own API proxy
+                        const qrRes = await fetch(`/api/qr?assistantId=${assistantId}`);
+                        if (!qrRes.ok) throw new Error('Failed to fetch QR from API proxy');
                         const { qr } = await qrRes.json();
                         
                         if (qr) {
@@ -69,27 +70,30 @@ export default function ConectarPage() {
                     }
                 } else if (status === 'connected') {
                     setLoadingMessage("¡Conectado! Redirigiendo...");
-                    // Give a moment for the user to see the message
                     setTimeout(() => {
                         router.push('/dashboard/asistentes');
                     }, 2000);
+                } else if (status === 'not_found') {
+                    setLoadingMessage("Asistente no encontrado en el gateway. Esperando sincronización...");
                 } else {
                      setLoadingMessage("Esperando conexión del gateway...");
                 }
 
             } catch (error) {
-                console.error("Error polling gateway:", error);
+                console.error("Error polling gateway status:", error);
                 setGatewayStatus('error');
-                setLoadingMessage("Error de conexión con el gateway.");
+                setLoadingMessage("Error de conexión. Verifica la consola.");
             }
         };
 
-        pollStatus();
         const intervalId = setInterval(pollStatus, 3000);
+
+        // Run once immediately
+        pollStatus();
 
         return () => clearInterval(intervalId);
 
-    }, [assistantId, router, qrCodeValue]); // qrCodeValue is a dependency
+    }, [assistantId, router, qrCodeValue]);
 
 
     const getTitle = () => {
@@ -99,7 +103,6 @@ export default function ConectarPage() {
     }
 
     const renderStatusContent = () => {
-        // Always show the QR code if we have it, regardless of the current polling status
         if (qrCodeValue) {
              return (
                 <>
@@ -114,10 +117,12 @@ export default function ConectarPage() {
         switch (gatewayStatus) {
             case 'loading':
             case 'disconnected':
+            case 'not_found':
                 return (
-                    <div className="flex flex-col items-center gap-4 text-muted-foreground w-56">
+                    <div className="flex flex-col items-center gap-4 text-muted-foreground w-64 text-center">
+                         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+                        <p className="text-sm font-semibold">{loadingMessage}</p>
                         <Progress value={50} className="w-full h-2 animate-pulse" />
-                        <p className="text-xs text-center">{loadingMessage}</p>
                     </div>
                 );
             case 'connected':
@@ -132,6 +137,7 @@ export default function ConectarPage() {
                     <div className="flex flex-col items-center gap-4 text-destructive">
                         <WifiOff className="h-24 w-24" />
                         <p className="font-semibold text-lg">{loadingMessage}</p>
+                        <p className="text-xs text-center max-w-xs">No se pudo comunicar con el servidor del gateway. Puede estar reiniciándose o tener un problema. Inténtalo de nuevo en unos minutos.</p>
                     </div>
                 );
             default:

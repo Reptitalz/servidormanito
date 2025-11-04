@@ -4,11 +4,18 @@ import { NextResponse } from 'next/server';
 // Esta API ahora es un proxy para el gateway.
 // Esto evita problemas de CORS si el cliente intenta llamar al gateway directamente.
 
-const GATEWAY_URL = 'https://servidormanito-722319793837.europe-west1.run.app';
+const GATEWAY_URL = 'https://servidormanito-7-west1.run.app';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const assistantId = searchParams.get('assistantId');
+
+  if (!assistantId) {
+    return NextResponse.json({ error: 'Assistant ID is required' }, { status: 400 });
+  }
+  
   try {
-    const response = await fetch(`${GATEWAY_URL}/qr`);
+    const response = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
     if (!response.ok) {
       throw new Error(`Gateway responded with status: ${response.status}`);
     }
