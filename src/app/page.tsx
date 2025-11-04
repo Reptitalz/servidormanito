@@ -1,5 +1,7 @@
 
 
+'use client';
+
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, MessageSquare, Zap, Bot } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,6 +15,7 @@ import { HowItWorks } from '@/components/layout/HowItWorks'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { SkillsCarousel } from '@/components/layout/SkillsCarousel'
 import GooglePayButton from '@/components/payments/GooglePayButton'
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const plans = [
@@ -70,6 +73,19 @@ export default function Home() {
     }
   ];
 
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: 'easeOut',
+      },
+    },
+  };
+
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-background">
       <div className="relative">
@@ -95,11 +111,33 @@ export default function Home() {
           </section>
         </main>
       </div>
+      
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+      >
+        <SkillsCarousel />
+      </motion.div>
 
-      <SkillsCarousel />
-      <HowItWorks />
-
-      <section id="pricing" className="py-20 md:py-32 bg-secondary">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+      >
+        <HowItWorks />
+      </motion.div>
+      
+      <motion.section 
+        id="pricing" 
+        className="py-20 md:py-32 bg-secondary"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+      >
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold font-headline mb-4">Planes para todos los tamaños</h2>
@@ -144,9 +182,16 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section id="faq" className="py-20 md:py-32 bg-background">
+      <motion.section 
+        id="faq" 
+        className="py-20 md:py-32 bg-background"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={sectionVariants}
+      >
         <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
                 <h2 className="text-3xl md:text-4xl font-bold font-headline mb-4">Preguntas Frecuentes</h2>
@@ -167,7 +212,7 @@ export default function Home() {
                 </Accordion>
             </div>
         </div>
-      </section>
+      </motion.section>
 
       <Footer />
     </div>
