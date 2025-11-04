@@ -36,7 +36,8 @@ steps:
     - 'managed'
     - '--set-env-vars'
     - 'NEXTJS_APP_URL=https://heymanito.com'
-    - 'FIREBASE_SERVICE_ACCOUNT_KEY=${_FIREBASE_SERVICE_ACCOUNT_KEY}'
+    # Pasa la clave como una variable de entorno secreta
+    - '--set-secrets=FIREBASE_SERVICE_ACCOUNT_KEY=FIREBASE_SERVICE_ACCOUNT_KEY:latest'
     - '--allow-unauthenticated' # Permite que el servicio haga peticiones a internet
     - '--quiet'
   id: 'Deploy'
@@ -48,3 +49,8 @@ images:
 # Usar las variables de sustitución predeterminadas del activador
 options:
   logging: CLOUD_LOGGING_ONLY
+
+# Habilitar la capacidad de acceder a Secret Manager
+secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/FIREBASE_SERVICE_ACCOUNT_KEY/versions/latest
+    env: 'FIREBASE_SERVICE_ACCOUNT_KEY'
