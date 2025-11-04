@@ -55,11 +55,11 @@ export default function ConectarPage() {
         const pollStatus = async () => {
             try {
                 const headers = new Headers({ 'X-Gateway-Secret': GATEWAY_SECRET });
-                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`, { headers });
+                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`, { headers, cache: 'no-store' });
                 
                 if (!statusRes.ok) {
                     if (statusRes.status === 403) throw new Error('Acceso denegado al gateway.');
-                    throw new Error('No se pudo obtener el estado del gateway.');
+                    throw new Error(`Error del gateway: ${statusRes.statusText}`);
                 }
                 
                 const { status, qr } = await statusRes.json() as GatewayStatusResponse;
@@ -70,10 +70,10 @@ export default function ConectarPage() {
                     setLoadingMessage("¡Escanea el código para conectar!");
                     setQrCodeValue(qr);
                 } else if (status === 'connected') {
-                    setLoadingMessage("¡Conectado! Redirigiendo...");
+                    setLoadingMessage("¡Conectado! Redirigiendo al dashboard...");
                     setTimeout(() => router.push('/dashboard/asistentes'), 2000);
                 } else if (status === 'not_found' || status === 'loading' || status === 'disconnected') {
-                    setLoadingMessage("Esperando conexión del gateway...");
+                    setLoadingMessage("Creando sesión y esperando el código QR de WhatsApp...");
                 }
 
             } catch (error: any) {
@@ -109,27 +109,20 @@ export default function ConectarPage() {
         // Prioritize showing the QR code if we have it
         if (gatewayStatus === 'qr' && qrCodeValue) {
              return (
-                <>
-                    <canvas ref={canvasRef} className="rounded-lg" />
-                    <p className="text-xs text-muted-foreground text-center max-w-xs pt-4">
+                <div className="flex flex-col items-center gap-4">
+                    <canvas ref={canvasRef} className="rounded-lg bg-white p-2" />
+                    <p className="text-sm text-muted-foreground text-center max-w-xs pt-4 font-semibold">
+                        {loadingMessage}
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center max-w-xs">
                         Abre WhatsApp en tu teléfono, ve a `Configuración` {'>'} `Dispositivos vinculados` y escanea el código.
                     </p>
-                </>
+                </div>
             );
         }
 
-        // Otherwise, show the current status
+        // Otherwise, show the current status indicator
         switch (gatewayStatus) {
-            case 'loading':
-            case 'disconnected':
-            case 'not_found':
-                return (
-                    <div className="flex flex-col items-center gap-4 text-muted-foreground w-64 text-center">
-                         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
-                        <p className="text-sm font-semibold">{loadingMessage}</p>
-                        <Progress value={50} className="w-full h-2 animate-pulse" />
-                    </div>
-                );
             case 'connected':
                  return (
                     <div className="flex flex-col items-center gap-4 text-green-600">
@@ -139,17 +132,22 @@ export default function ConectarPage() {
                 );
             case 'error':
                  return (
-                    <div className="flex flex-col items-center gap-4 text-destructive">
+                    <div className="flex flex-col items-center gap-4 text-destructive text-center">
                         <WifiOff className="h-24 w-24" />
                         <p className="font-semibold text-lg">{loadingMessage}</p>
-                        <p className="text-xs text-center max-w-xs">No se pudo comunicar con el servidor del gateway. Puede estar reiniciándose o tener un problema. Inténtalo de nuevo en unos minutos.</p>
+                        <p className="text-xs max-w-xs">No se pudo comunicar con el servidor del gateway. Puede estar reiniciándose o tener un problema. Inténtalo de nuevo en unos minutos.</p>
                     </div>
                 );
+            case 'loading':
+            case 'disconnected':
+            case 'not_found':
             default:
                 return (
-                     <div className="flex flex-col items-center gap-4 text-muted-foreground w-56">
+                    <div className="flex flex-col items-center gap-4 text-muted-foreground w-64 text-center">
+                         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+                        <p className="text-sm font-semibold">{loadingMessage}</p>
                         <Progress value={50} className="w-full h-2 animate-pulse" />
-                        <p className="text-xs text-center">{loadingMessage}</p>
+                        <p className="text-xs pt-2">Esto puede tardar hasta 30 segundos mientras se establece la conexión con WhatsApp.</p>
                     </div>
                 );
         }
@@ -174,7 +172,7 @@ export default function ConectarPage() {
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="flex flex-col items-center justify-center p-6 gap-4 min-h-[320px]">
+                <CardContent className="flex flex-col items-center justify-center p-6 gap-4 min-h-[350px]">
                     {renderStatusContent()}
                 </CardContent>
             </Card>
