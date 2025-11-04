@@ -18,7 +18,7 @@ steps:
 
 # 3. Imprimir la variable de entorno para depuración
 - name: 'ubuntu'
-  args: ['bash', '-c', "echo 'La URL del frontend que se va a usar es: https://studio--studio-1128284178-7d125.us-central1.hosted.app'"]
+  args: ['bash', '-c', "echo 'La URL del frontend que se va a usar es: https://heymanito.com'"]
   id: 'Debug URL'
 
 # 4. Desplegar la imagen en Cloud Run con la variable de entorno y permisos de red
@@ -35,7 +35,7 @@ steps:
     - '--platform'
     - 'managed'
     - '--set-env-vars'
-    - 'NEXTJS_APP_URL=https://studio--studio-1128284178-7d125.us-central1.hosted.app' # URL PÚBLICA DE TU APP
+    - 'NEXTJS_APP_URL=https://heymanito.com' # URL PÚBLICA DE TU APP
     - '--allow-unauthenticated' # Permite que el servicio haga peticiones a internet
     - '--quiet'
   id: 'Deploy'
