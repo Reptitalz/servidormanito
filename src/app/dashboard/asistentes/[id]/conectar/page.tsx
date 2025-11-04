@@ -44,9 +44,9 @@ export default function ConectarPage() {
 
         const pollStatus = async () => {
             try {
-                // We now poll our own API route which acts as a proxy
-                const statusRes = await fetch(`/api/status?assistantId=${assistantId}`);
-                if (!statusRes.ok) throw new Error('Failed to fetch status from API proxy');
+                // Call the gateway directly
+                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`);
+                if (!statusRes.ok) throw new Error('Failed to fetch status from gateway');
                 const { status } = await statusRes.json();
                 
                 setGatewayStatus(status);
@@ -54,9 +54,9 @@ export default function ConectarPage() {
                 if (status === 'qr') {
                     setLoadingMessage("¡Escanea el código para conectar!");
                     if (!qrCodeValue) {
-                        // Fetch QR via our own API proxy
-                        const qrRes = await fetch(`/api/qr?assistantId=${assistantId}`);
-                        if (!qrRes.ok) throw new Error('Failed to fetch QR from API proxy');
+                        // Fetch QR directly from the gateway
+                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
+                        if (!qrRes.ok) throw new Error('Failed to fetch QR from gateway');
                         const { qr } = await qrRes.json();
                         
                         if (qr) {
