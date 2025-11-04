@@ -43,7 +43,7 @@ const server = http.createServer((req, res) => {
   }
   
   // Auth check for protected routes
-  const protectedRoutes = ['/status', '/qr'];
+  const protectedRoutes = ['/status'];
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
 
   if (protectedRoutes.includes(requestUrl.pathname)) {
@@ -152,26 +152,26 @@ async function connectToWhatsApp(assistantId) {
 
         if (connection === 'close') {
             const reason = (lastDisconnect?.error)?.output?.statusCode;
-            const shouldReconnect = reason !== DisconnectReason.loggedOut;
-            
             logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}.`);
 
-            if (reason === 405) { // Error 405: Sesión inválida o conflicto
-                 logger.error(`[${assistantId}] Error 405: Sesión inválida. Limpiando y reintentando desde cero...`);
-                 await stopBotInstance(assistantId, false); // Detener sin eliminar de activeBots
-                 setTimeout(() => createBotInstance(assistantId), 5000); // Reintentar después de 5 segundos
-                 return;
-            }
+            current.qr = null; // Siempre limpiar QR al desconectar
 
-            current.qr = null;
-            if (shouldReconnect) {
+            if (reason === DisconnectReason.loggedOut) {
                 current.status = 'disconnected';
-                logger.info(`[${assistantId}] Reintentando conexión...`);
-                connectToWhatsApp(assistantId); // Llama a la función para reconectar
+                logger.error(`[${assistantId}] Sesión cerrada permanentemente. Limpiando...`);
+                await stopBotInstance(assistantId);
+            } else if (reason === 405) { // Error de sesión inválida/conflicto
+                 logger.error(`[${assistantId}] Error 405: Sesión inválida. Limpiando y reintentando desde cero...`);
+                 // Detener sin eliminar del mapa para reintentar
+                 await stopBotInstance(assistantId, false);
+                 // Reintentar la creación de una instancia nueva después de un breve retraso
+                 setTimeout(() => createBotInstance(assistantId), 5000);
             } else {
                 current.status = 'disconnected';
-                 logger.error(`[${assistantId}] Sesión cerrada permanentemente. Limpiando credenciales.`);
-                await stopBotInstance(assistantId); // Llama a la función completa de limpieza
+                logger.info(`[${assistantId}] Reintentando conexión...`);
+                // Llamada a la reconexión. La propia librería gestiona reintentos,
+                // pero si falla persistentemente, este bucle puede activarse.
+                connectToWhatsApp(assistantId);
             }
         } else if (connection === 'open') {
             current.status = 'connected';
@@ -295,11 +295,13 @@ async function stopBotInstance(assistantId, removeFromMap = true) {
       activeBots.delete(assistantId);
       logger.info(`Bot ${assistantId} detenido y eliminado.`);
   } else {
+      // Si no se elimina del mapa, se está preparando para un reintento.
+      // Se actualiza el estado para reflejar la limpieza.
+      bot.status = 'loading'; 
+      bot.qr = null;
       logger.info(`Credenciales de sesión para ${assistantId} eliminadas. Se reintentará la conexión.`);
   }
 }
 
 process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
 process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
-
-    
