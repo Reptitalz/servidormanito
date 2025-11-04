@@ -1,188 +1,78 @@
 
-import { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
-import makeWASocket from '@whiskeysockets/baileys';
-import pino from 'pino';
+import express from "express";
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
+import pino from "pino";
+import fs from "fs";
+import fsp from "fs/promises";
+import cors from "cors";
+import path from "path";
 import axios from 'axios';
-import fs from 'fs';
-import fsp from 'fs/promises';
 import FormData from 'form-data';
 import os from 'os';
-import path from 'path';
-import http from 'http';
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-import { URL } from 'url';
 
 // === CONFIGURACIÓN ===
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
-const SESSION_BASE_PATH = path.join(os.tmpdir(), 'wa-sessions');
-const GATEWAY_SECRET = process.env.GATEWAY_SECRET;
+const SESSIONS_DIR = path.join(process.cwd(), 'sessions'); // Usar directorio local para persistencia
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
 
-// Mapa para gestionar las instancias de los bots
-const activeBots = new Map();
-let db = null; // Firestore se inicializa después
 
-if (!GATEWAY_SECRET) {
-    logger.warn("⚠️ ADVERTENCIA: La variable de entorno GATEWAY_SECRET no está definida. El gateway es vulnerable.");
-}
+const app = express();
+app.use(cors()); // Permitir todas las peticiones CORS
+app.use(express.json());
 
+const sessions = {}; // guardará las conexiones por ID
 
-// ======== SERVIDOR HTTP PRIMERO ========
-const server = http.createServer((req, res) => {
-  // Middleware de seguridad y CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Gateway-Secret');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+async function createSession(assistantId) {
+  const sessionPath = path.join(SESSIONS_DIR, assistantId);
+  await fsp.mkdir(sessionPath, { recursive: true });
 
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
-  
-  // Auth check for protected routes
-  const protectedRoutes = ['/status'];
-  const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+  const sock = makeWASocket({
+    auth: state,
+    logger,
+    printQRInTerminal: false, // No imprimir en terminal, lo mandamos por API
+    browser: ["HeyManito", "Desktop", "1.0.0"],
+  });
 
-  if (protectedRoutes.includes(requestUrl.pathname)) {
-    const providedSecret = req.headers['x-gateway-secret'];
-    if (GATEWAY_SECRET && providedSecret !== GATEWAY_SECRET) {
-      logger.warn(`🚫 Acceso denegado a ruta protegida. Secreto incorrecto o no proporcionado.`);
-      res.writeHead(403, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Forbidden' }));
-      return;
-    }
-  }
-  
-  const assistantId = requestUrl.searchParams.get('assistantId');
+  sessions[assistantId] = { sock, qr: null, status: "loading" };
 
-  if (requestUrl.pathname === '/status') {
-    let botState = activeBots.get(assistantId);
-    if (!botState) {
-        logger.info(`[${assistantId}] No encontrado en memoria. Iniciando instancia bajo demanda...`);
-        botState = createBotInstance(assistantId);
-    }
-    
-    const responsePayload = { status: botState.status, qr: null };
-    if (botState.status === 'qr') {
-        responsePayload.qr = botState.qr;
-    }
-    
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(responsePayload));
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+    const session = sessions[assistantId];
+    if (!session) return;
 
-  } else if (requestUrl.pathname === '/' || requestUrl.pathname === '/_health' || requestUrl.pathname === '/healthz') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hey Manito! Gateway - OK');
-  } else {
-    res.writeHead(404);
-    res.end();
-  }
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
-  logger.info(`🚀 Servidor HTTP activo en puerto ${PORT}`);
-  initializeBackend();
-});
-
-// ======== INICIALIZACIÓN BACKEND ========
-
-async function initializeBackend() {
-  const firebaseReady = await initializeFirebaseAdmin();
-  if (!firebaseReady) {
-    logger.error("❌ No se pudo inicializar Firebase Admin. El gateway no podrá sincronizar asistentes.");
-    return;
-  }
-
-  logger.info("✅ Firebase listo. Iniciando sincronización de bots...");
-  syncBotsWithFirestore();
-}
-
-async function initializeFirebaseAdmin() {
-  try {
-    const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!key) throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY no está definida.");
-    const serviceAccount = JSON.parse(key);
-    initializeApp({ credential: cert(serviceAccount) });
-    db = getFirestore();
-    logger.info("✅ Conexión con Firebase Admin establecida.");
-    return true;
-  } catch (e) {
-    logger.error(`❌ Error al inicializar Firebase: ${e.message}`);
-    return false;
-  }
-}
-
-// ======== LÓGICA DE BOTS (REFACTORIZADA) ========
-
-async function connectToWhatsApp(assistantId) {
-    const botState = activeBots.get(assistantId);
-    if (!botState) {
-        logger.error(`[${assistantId}] No se encontró el estado del bot para la conexión.`);
-        return;
+    if (qr) {
+      session.qr = qr;
+      session.status = "qr";
+      console.log(`[${assistantId}] QR generado`);
     }
 
-    const sessionPath = path.join(SESSION_BASE_PATH, assistantId);
-    await fsp.mkdir(sessionPath, { recursive: true });
+    if (connection === "open") {
+      session.status = "connected";
+      console.log(`[${assistantId}] Conectado`);
+    }
 
-    const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+    if (connection === "close") {
+      const reason = lastDisconnect?.error?.output?.statusCode;
+      if (reason === DisconnectReason.loggedOut) {
+        console.log(`[${assistantId}] Dispositivo deslogueado, limpiando sesión.`);
+        // Borra los archivos de sesión
+        await fsp.rm(sessionPath, { recursive: true, force: true });
+        delete sessions[assistantId]; // Elimina de memoria
+      } else {
+         session.status = "disconnected";
+         console.log(`[${assistantId}] Desconectado, intentando reconectar...`);
+         // La librería intentará reconectar automáticamente. 
+         // Si falla, se necesitará un nuevo QR.
+         createSession(assistantId).catch(err => console.error(`[${assistantId}] Error al recrear sesión:`, err));
+      }
+    }
+  });
 
-    const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: false,
-        logger,
-        browser: ['Hey Manito!', 'Cloud Run', '3.0']
-    });
+  sock.ev.on("creds.update", saveCreds);
 
-    botState.sock = sock;
-
-    sock.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect, qr } = update;
-        const current = activeBots.get(assistantId);
-        if (!current) return;
-
-        if (qr) {
-            current.status = 'qr';
-            current.qr = qr;
-            logger.info(`[${assistantId}] QR disponible para escanear.`);
-        }
-
-        if (connection === 'close') {
-            const reason = (lastDisconnect?.error)?.output?.statusCode;
-            logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}.`);
-
-            current.qr = null; // Siempre limpiar QR al desconectar
-
-            if (reason === DisconnectReason.loggedOut) {
-                current.status = 'disconnected';
-                logger.error(`[${assistantId}] Sesión cerrada permanentemente. Limpiando...`);
-                await stopBotInstance(assistantId);
-            } else if (reason === 405) { // Error de sesión inválida/conflicto
-                 logger.error(`[${assistantId}] Error 405: Sesión inválida. Limpiando y reintentando desde cero...`);
-                 // Detener sin eliminar del mapa para reintentar
-                 await stopBotInstance(assistantId, false);
-                 // Reintentar la creación de una instancia nueva después de un breve retraso
-                 setTimeout(() => createBotInstance(assistantId), 5000);
-            } else {
-                current.status = 'disconnected';
-                logger.info(`[${assistantId}] Reintentando conexión...`);
-                // Llamada a la reconexión. La propia librería gestiona reintentos,
-                // pero si falla persistentemente, este bucle puede activarse.
-                connectToWhatsApp(assistantId);
-            }
-        } else if (connection === 'open') {
-            current.status = 'connected';
-            current.qr = null;
-            logger.info(`✅ [${assistantId}] Conexión establecida.`);
-        }
-    });
-
-    sock.ev.on('creds.update', saveCreds);
-
-    sock.ev.on('messages.upsert', async (m) => {
+  sock.ev.on('messages.upsert', async (m) => {
         const msg = m.messages[0];
         if (!msg.message || msg.key.fromMe) return;
         const sender = msg.key.remoteJid;
@@ -219,89 +109,52 @@ async function connectToWhatsApp(assistantId) {
             await sock.sendMessage(sender, { text: 'Ocurrió un error al procesar tu mensaje.' });
         }
     });
+
+
+  return sock;
 }
 
-function createBotInstance(assistantId) {
-    if (activeBots.has(assistantId)) {
-        // Si ya existe pero no tiene socket, puede ser un reintento.
-        const existingBot = activeBots.get(assistantId);
-        if (existingBot.sock) {
-             logger.warn(`El bot para ${assistantId} ya está en proceso.`);
-             return existingBot;
-        }
-    }
-    logger.info(`Iniciando nueva instancia de bot para el asistente: ${assistantId}`);
+// 🔹 Endpoint para obtener el estado
+app.get("/status", async (req, res) => {
+  const { assistantId } = req.query;
+  if (!assistantId) return res.status(400).json({ error: "Falta assistantId" });
 
-    const botState = {
-        status: 'loading', // Estado inicial
-        qr: null,
-        sock: null,
-    };
-    activeBots.set(assistantId, botState);
-    connectToWhatsApp(assistantId).catch(e => logger.error(`[${assistantId}] Fallo al conectar: ${e.message}`));
-    return botState;
-}
-
-function syncBotsWithFirestore() {
-  if (!db) {
-    logger.error("⚠️ Firestore no disponible, reintentando en 10s...");
-    setTimeout(syncBotsWithFirestore, 10000);
-    return;
-  }
-
-  db.collectionGroup('assistants').onSnapshot(
-    (snapshot) => {
-      logger.info(`Sincronizando ${snapshot.size} asistentes desde Firestore...`);
-      const firestoreAssistants = new Set(snapshot.docs.map((d) => d.id));
-      
-      // Iniciar bots para asistentes nuevos o no activos
-      for (const id of firestoreAssistants) {
-        if (!activeBots.has(id)) {
-          createBotInstance(id);
-        }
-      }
-      
-      // Detener bots para asistentes eliminados
-      for (const id of activeBots.keys()) {
-        if (!firestoreAssistants.has(id)) {
-          stopBotInstance(id).catch(e => logger.error(`Error deteniendo bot ${id}: ${e.message}`));
-        }
-      }
-    },
-    (err) => logger.error("❌ Error escuchando cambios en Firestore:", err)
-  );
-}
-
-async function stopBotInstance(assistantId, removeFromMap = true) {
-  const bot = activeBots.get(assistantId);
-  if (!bot) return;
-
-  logger.warn(`Deteniendo bot ${assistantId}...`);
-  if (bot.sock) {
+  const session = sessions[assistantId];
+  if (!session || session.status === 'disconnected') {
+    // Si no hay sesión o está desconectada, intenta crear una nueva
     try {
-      // No esperar a la desconexión, solo iniciarla.
-      bot.sock.logout();
-      bot.sock.ev.removeAllListeners();
-    } catch (e) {
-      logger.error(`[${assistantId}] Error durante el logout: ${e.message}`);
+        await createSession(assistantId);
+        // Responde que está inicializando, el frontend volverá a preguntar
+        return res.json({ status: "initializing" });
+    } catch(e) {
+        console.error(`Error al crear sesión para ${assistantId}`, e);
+        return res.status(500).json({ error: 'No se pudo crear la sesión' });
     }
-    bot.sock = null;
   }
-  
-  const sessionPath = path.join(SESSION_BASE_PATH, assistantId);
-  await fsp.rm(sessionPath, { recursive: true, force: true }).catch(e => logger.error(`No se pudo eliminar la carpeta de sesión para ${assistantId}: ${e.message}`));
-  
-  if (removeFromMap) {
-      activeBots.delete(assistantId);
-      logger.info(`Bot ${assistantId} detenido y eliminado.`);
-  } else {
-      // Si no se elimina del mapa, se está preparando para un reintento.
-      // Se actualiza el estado para reflejar la limpieza.
-      bot.status = 'loading'; 
-      bot.qr = null;
-      logger.info(`Credenciales de sesión para ${assistantId} eliminadas. Se reintentará la conexión.`);
-  }
-}
 
-process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
-process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
+  res.json({ status: session.status });
+});
+
+// 🔹 Endpoint para obtener el QR
+app.get("/qr", (req, res) => {
+  const { assistantId } = req.query;
+  if (!assistantId) return res.status(400).json({ error: "Falta assistantId" });
+
+  const session = sessions[assistantId];
+  if (!session) return res.status(404).json({ error: "Sesión no encontrada" });
+  if (!session.qr) return res.status(404).json({ error: "QR no disponible" });
+
+  res.json({ qr: session.qr });
+});
+
+// Endpoint de salud para Cloud Run
+app.get("/", (req, res) => {
+    res.status(200).send("Hey Manito! Gateway - OK");
+});
+app.get("/_health", (req, res) => {
+    res.status(200).send("OK");
+});
+
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));

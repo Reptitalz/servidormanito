@@ -14,14 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 
 const GATEWAY_URL = 'https://servidormanito-722319793837.europe-west1.run.app';
-const GATEWAY_SECRET = process.env.NEXT_PUBLIC_GATEWAY_SECRET;
 
-type GatewayStatus = 'loading' | 'qr' | 'connected' | 'disconnected' | 'error' | 'not_found';
-
-interface GatewayStatusResponse {
-    status: GatewayStatus;
-    qr?: string;
-}
+type GatewayStatus = 'loading' | 'initializing' | 'qr' | 'connected' | 'disconnected' | 'error';
 
 export default function ConectarPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -38,65 +32,52 @@ export default function ConectarPage() {
     }, [user, assistantId, firestore]);
 
     const { data: assistant, isLoading: isAssistantLoading } = useDoc(assistantRef);
-    const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus>('loading');
-    const [qrCodeValue, setQrCodeValue] = useState<string | null>(null);
+    
+    const [status, setStatus] = useState<GatewayStatus>('loading');
+    const [qr, setQr] = useState<string | null>(null);
     const [loadingMessage, setLoadingMessage] = useState("Inicializando conexión...");
     
     useEffect(() => {
         if (!assistantId) return;
 
-        if (!GATEWAY_SECRET) {
-            console.error("Gateway secret is not configured in the frontend.");
-            setGatewayStatus('error');
-            setLoadingMessage("Error de configuración. Contacta a soporte.");
-            return;
-        }
-
-        const pollStatus = async () => {
-            try {
-                const headers = new Headers({ 'X-Gateway-Secret': GATEWAY_SECRET });
-                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`, { headers, cache: 'no-store' });
-                
-                if (!statusRes.ok) {
-                    if (statusRes.status === 403) throw new Error('Acceso denegado al gateway.');
-                    throw new Error(`Error del gateway: ${statusRes.statusText}`);
-                }
-                
-                const { status, qr } = await statusRes.json() as GatewayStatusResponse;
-                
-                setGatewayStatus(status);
-
-                if (status === 'qr' && qr) {
-                    setLoadingMessage("¡Escanea el código para conectar!");
-                    setQrCodeValue(qr);
-                } else if (status === 'connected') {
-                    setLoadingMessage("¡Conectado! Redirigiendo al dashboard...");
-                    setTimeout(() => router.push('/dashboard/asistentes'), 2000);
-                } else if (status === 'not_found' || status === 'loading' || status === 'disconnected') {
-                    setLoadingMessage("Creando sesión y esperando el código QR de WhatsApp...");
-                }
-
-            } catch (error: any) {
-                console.error("Error polling gateway status:", error);
-                setGatewayStatus('error');
-                setLoadingMessage(error.message || "Error de conexión con el gateway.");
+        const interval = setInterval(async () => {
+          try {
+            const res = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`);
+            const data = await res.json();
+            setStatus(data.status);
+    
+            if (data.status === 'qr') {
+              // Si el estado es QR, hacemos una segunda llamada para obtener el QR
+              const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
+              const qrData = await qrRes.json();
+              if (qrData.qr !== qr) {
+                setQr(qrData.qr);
+                setLoadingMessage("¡Escanea el código para conectar!");
+              }
+            } else if (data.status === 'connected') {
+                setLoadingMessage("¡Conectado! Redirigiendo al dashboard...");
+                clearInterval(interval); // Detener polling
+                setTimeout(() => router.push('/dashboard/asistentes'), 2000);
+            } else {
+                setLoadingMessage("Creando sesión y esperando el código QR de WhatsApp...");
             }
-        };
-
-        const intervalId = setInterval(pollStatus, 3000);
-        pollStatus(); // Run once immediately
-
-        return () => clearInterval(intervalId);
-
-    }, [assistantId, router]);
+          } catch (err) {
+            console.error('Error fetching status:', err);
+            setStatus('error');
+            setLoadingMessage("Error de conexión con el gateway.");
+          }
+        }, 3000);
+    
+        return () => clearInterval(interval);
+    }, [assistantId, qr, router]);
 
     useEffect(() => {
-        if (qrCodeValue && canvasRef.current) {
-            QRCode.toCanvas(canvasRef.current, qrCodeValue, { width: 256, errorCorrectionLevel: 'H' }, (error) => {
+        if (qr && canvasRef.current) {
+            QRCode.toCanvas(canvasRef.current, qr, { width: 256, errorCorrectionLevel: 'H' }, (error) => {
                 if (error) console.error("Error generating QR code canvas:", error);
             });
         }
-    }, [qrCodeValue]);
+    }, [qr]);
 
 
     const getTitle = () => {
@@ -106,8 +87,7 @@ export default function ConectarPage() {
     }
 
     const renderStatusContent = () => {
-        // Prioritize showing the QR code if we have it
-        if (gatewayStatus === 'qr' && qrCodeValue) {
+        if (status === 'qr' && qr) {
              return (
                 <div className="flex flex-col items-center gap-4">
                     <canvas ref={canvasRef} className="rounded-lg bg-white p-2" />
@@ -121,8 +101,7 @@ export default function ConectarPage() {
             );
         }
 
-        // Otherwise, show the current status indicator
-        switch (gatewayStatus) {
+        switch (status) {
             case 'connected':
                  return (
                     <div className="flex flex-col items-center gap-4 text-green-600">
@@ -139,8 +118,8 @@ export default function ConectarPage() {
                     </div>
                 );
             case 'loading':
+            case 'initializing':
             case 'disconnected':
-            case 'not_found':
             default:
                 return (
                     <div className="flex flex-col items-center gap-4 text-muted-foreground w-64 text-center">
