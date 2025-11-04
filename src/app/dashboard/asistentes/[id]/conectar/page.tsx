@@ -171,7 +171,7 @@ export default function ConectarPage() {
 
 
     return (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center w-full">
             <Card className="w-full max-w-lg">
                 <CardHeader>
                     <div className="flex items-center gap-4">
