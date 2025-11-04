@@ -17,16 +17,23 @@ import { URL } from 'url';
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
 const SESSION_BASE_PATH = path.join(os.tmpdir(), 'wa-sessions');
+const GATEWAY_SECRET = process.env.GATEWAY_SECRET;
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
 
 // Mapa para gestionar las instancias de los bots
 const activeBots = new Map();
 let db = null; // Firestore se inicializa después
 
+if (!GATEWAY_SECRET) {
+    logger.warn("⚠️ ADVERTENCIA: La variable de entorno GATEWAY_SECRET no está definida. El gateway es vulnerable.");
+}
+
+
 // ======== SERVIDOR HTTP PRIMERO ========
 const server = http.createServer((req, res) => {
+  // Middleware de seguridad y CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Gateway-Secret');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 
   if (req.method === 'OPTIONS') {
@@ -34,8 +41,21 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
-
+  
+  // Auth check for protected routes
+  const protectedRoutes = ['/status', '/qr'];
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+
+  if (protectedRoutes.includes(requestUrl.pathname)) {
+    const providedSecret = req.headers['x-gateway-secret'];
+    if (GATEWAY_SECRET && providedSecret !== GATEWAY_SECRET) {
+      logger.warn(`🚫 Acceso denegado a ruta protegida. Secreto incorrecto o no proporcionado.`);
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Forbidden' }));
+      return;
+    }
+  }
+  
   const assistantId = requestUrl.searchParams.get('assistantId');
 
   if (requestUrl.pathname === '/status') {
@@ -66,7 +86,7 @@ server.listen(PORT, () => {
 async function initializeBackend() {
   const firebaseReady = await initializeFirebaseAdmin();
   if (!firebaseReady) {
-    logger.error("❌ No se pudo inicializar Firebase Admin. Continuando sin Firestore...");
+    logger.error("❌ No se pudo inicializar Firebase Admin. El gateway no podrá sincronizar asistentes.");
     return;
   }
 
@@ -84,7 +104,7 @@ async function initializeFirebaseAdmin() {
     logger.info("✅ Conexión con Firebase Admin establecida.");
     return true;
   } catch (e) {
-    logger.error("❌ Error al inicializar Firebase:", e.message);
+    logger.error(`❌ Error al inicializar Firebase: ${e.message}`);
     return false;
   }
 }
@@ -120,7 +140,7 @@ async function connectToWhatsApp(assistantId) {
         if (qr) {
             current.status = 'qr';
             current.qr = qr;
-            logger.warn(`📲 [${assistantId}] QR disponible para escanear.`);
+            logger.info(`[${assistantId}] QR disponible para escanear.`);
         }
 
         if (connection === 'close') {
@@ -131,13 +151,12 @@ async function connectToWhatsApp(assistantId) {
 
             current.qr = null;
             if (shouldReconnect) {
-                current.status = 'disconnected'; // O 'reconnecting'
+                current.status = 'disconnected';
                 connectToWhatsApp(assistantId); // Llama a la función para reconectar
             } else {
                 current.status = 'disconnected';
-                await fsp.rm(sessionPath, { recursive: true, force: true });
-                activeBots.delete(assistantId);
-                logger.error(`[${assistantId}] Sesión cerrada permanentemente. Se requiere nuevo escaneo de QR.`);
+                 logger.error(`[${assistantId}] Sesión cerrada permanentemente. Eliminando credenciales.`);
+                await stopBotInstance(assistantId); // Llama a la función completa de limpieza
             }
         } else if (connection === 'open') {
             current.status = 'connected';
@@ -205,8 +224,8 @@ function createBotInstance(assistantId) {
 
 function syncBotsWithFirestore() {
   if (!db) {
-    logger.error("⚠️ Firestore no disponible, reintentando en 5s...");
-    setTimeout(syncBotsWithFirestore, 5000);
+    logger.error("⚠️ Firestore no disponible, reintentando en 10s...");
+    setTimeout(syncBotsWithFirestore, 10000);
     return;
   }
 

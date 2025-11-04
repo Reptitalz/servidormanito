@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 
 const GATEWAY_URL = 'https://servidormanito-722319793837.europe-west1.run.app';
+const GATEWAY_SECRET = process.env.NEXT_PUBLIC_GATEWAY_SECRET;
 
 type GatewayStatus = 'loading' | 'qr' | 'connected' | 'disconnected' | 'error' | 'not_found';
 
@@ -42,11 +43,25 @@ export default function ConectarPage() {
     useEffect(() => {
         if (!assistantId) return;
 
+        if (!GATEWAY_SECRET) {
+            console.error("Gateway secret is not configured in the frontend.");
+            setGatewayStatus('error');
+            setLoadingMessage("Error de configuración. Contacta a soporte.");
+            return;
+        }
+
         const pollStatus = async () => {
             try {
-                // Call the gateway directly
-                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`);
-                if (!statusRes.ok) throw new Error('Failed to fetch status from gateway');
+                // Call the gateway directly with the secret key
+                const headers = new Headers({
+                    'X-Gateway-Secret': GATEWAY_SECRET
+                });
+
+                const statusRes = await fetch(`${GATEWAY_URL}/status?assistantId=${assistantId}`, { headers });
+                if (!statusRes.ok) {
+                    if (statusRes.status === 403) throw new Error('Acceso denegado al gateway. Verifica la llave secreta.');
+                    throw new Error('Failed to fetch status from gateway');
+                }
                 const { status } = await statusRes.json();
                 
                 setGatewayStatus(status);
@@ -55,7 +70,7 @@ export default function ConectarPage() {
                     setLoadingMessage("¡Escanea el código para conectar!");
                     // Only fetch QR if we don't have it, to prevent flickering
                     if (!qrCodeValue) { 
-                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
+                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`, { headers });
                         if (!qrRes.ok) throw new Error('Failed to fetch QR from gateway');
                         const { qr } = await qrRes.json();
                         
@@ -75,10 +90,10 @@ export default function ConectarPage() {
                      setLoadingMessage("Esperando conexión del gateway...");
                 }
 
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error polling gateway status:", error);
                 setGatewayStatus('error');
-                setLoadingMessage("Error de conexión. Verifica la consola.");
+                setLoadingMessage(error.message || "Error de conexión. Verifica la consola.");
             }
         };
 
@@ -106,7 +121,7 @@ export default function ConectarPage() {
 
     const renderStatusContent = () => {
         // Prioritize showing the QR code if we have it
-        if (qrCodeValue) {
+        if (qrCodeValue && gatewayStatus === 'qr') {
              return (
                 <>
                     <canvas ref={canvasRef} className="rounded-lg" />
