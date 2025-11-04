@@ -17,28 +17,34 @@ import { URL } from 'url';
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
 const SESSION_BASE_PATH = path.join(os.tmpdir(), 'wa-sessions');
-
-// === INICIALIZACIÓN DE FIREBASE ADMIN ===
-try {
-    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!serviceAccountKey) {
-        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_KEY no está definida. El gateway no puede funcionar sin acceso a Firestore.");
-    }
-    const serviceAccount = JSON.parse(serviceAccountKey);
-    initializeApp({
-        credential: cert(serviceAccount),
-    });
-    console.log("✅ Conexión con Firebase Admin establecida.");
-} catch (e) {
-    console.error("❌ Error Crítico: No se pudo inicializar Firebase Admin. ", e.message);
-    process.exit(1); // Detiene el proceso si no puede conectar a Firebase
-}
-
-const db = getFirestore();
 const logger = pino({ level: 'warn', transport: { target: 'pino-pretty' } });
 
 // Mapa para gestionar las instancias de los bots
 const activeBots = new Map();
+let db; // Variable para la instancia de Firestore
+
+/**
+ * Inicializa la conexión con Firebase Admin.
+ */
+async function initializeFirebaseAdmin() {
+    try {
+        const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+        if (!serviceAccountKey) {
+            throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_KEY no está definida.");
+        }
+        const serviceAccount = JSON.parse(serviceAccountKey);
+        initializeApp({
+            credential: cert(serviceAccount),
+        });
+        db = getFirestore();
+        logger.info("✅ Conexión con Firebase Admin establecida.");
+        return true;
+    } catch (e) {
+        logger.error("❌ Error Crítico: No se pudo inicializar Firebase Admin. ", e.message);
+        return false;
+    }
+}
+
 
 /**
  * Crea y gestiona una instancia de un bot de WhatsApp.
@@ -183,6 +189,10 @@ async function stopBotInstance(assistantId) {
  * Sincroniza las instancias de bots con los documentos de Firestore.
  */
 function syncBotsWithFirestore() {
+    if (!db) {
+        logger.error("La base de datos de Firestore no está disponible. No se puede sincronizar.");
+        return;
+    }
     db.collectionGroup('assistants').onSnapshot(
         (snapshot) => {
             const firestoreAssistants = new Set();
@@ -209,50 +219,63 @@ function syncBotsWithFirestore() {
             }
         },
         (err) => {
-            console.error("❌ Error Crítico: No se pudo escuchar los cambios de Firestore. ", err);
-            process.exit(1);
+            logger.error("❌ Error Crítico: No se pudo escuchar los cambios de Firestore. ", err);
         }
     );
 }
 
-// === Servidor HTTP para Cloud Run ===
-const server = http.createServer((req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+/**
+ * Inicia el servidor HTTP y, si tiene éxito, la sincronización con Firestore.
+ */
+async function startServer() {
+    const firebaseReady = await initializeFirebaseAdmin();
+    if (!firebaseReady) {
+        logger.error("El servidor no se iniciará porque Firebase no pudo inicializarse.");
+        process.exit(1);
+    }
     
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
-        return;
-    }
-
-    const requestUrl = new URL(req.url, `http://${req.headers.host}`);
-    const assistantId = requestUrl.searchParams.get('assistantId');
-
-    if (requestUrl.pathname === '/status') {
-        const botState = activeBots.get(assistantId);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: botState ? botState.status : 'not_found' }));
-    } else if (requestUrl.pathname === '/qr') {
-        const botState = activeBots.get(assistantId);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ qr: botState ? botState.qr : null }));
-    } else if (requestUrl.pathname === '/' || requestUrl.pathname === '/_health') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Hey Manito! Gateway - OK');
-    } else {
-        res.writeHead(404);
-        res.end();
-    }
-});
-
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, async () => {
-    // Iniciar la sincronización con Firestore
+    // Ahora que Firebase está listo, podemos iniciar la sincronización.
     syncBotsWithFirestore();
-    logger.info(`🚀 Gateway escuchando en el puerto ${PORT} y sincronizando con Firestore...`);
-});
+
+    const server = http.createServer((req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204);
+            res.end();
+            return;
+        }
+
+        const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+        const assistantId = requestUrl.searchParams.get('assistantId');
+
+        if (requestUrl.pathname === '/status') {
+            const botState = activeBots.get(assistantId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ status: botState ? botState.status : 'not_found' }));
+        } else if (requestUrl.pathname === '/qr') {
+            const botState = activeBots.get(assistantId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ qr: botState ? botState.qr : null }));
+        } else if (requestUrl.pathname === '/' || requestUrl.pathname === '/_health') {
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Hey Manito! Gateway - OK');
+        } else {
+            res.writeHead(404);
+            res.end();
+        }
+    });
+
+    const PORT = process.env.PORT || 8080;
+    server.listen(PORT, () => {
+        logger.info(`🚀 Gateway escuchando en el puerto ${PORT} y sincronizado con Firestore.`);
+    });
+}
+
+// === PUNTO DE ENTRADA ===
+startServer();
 
 process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
 process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
