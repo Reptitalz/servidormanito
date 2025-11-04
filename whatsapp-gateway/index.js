@@ -19,17 +19,20 @@ const SESSION_FILE_PATH = path.join(os.tmpdir(), 'wa-session');
 let gatewayStatus = 'disconnected'; // disconnected, qr, connected, error
 let qrCode = null; // QR en memoria
 
+// Configura el logger para ser menos verboso, mostrando solo logs a partir de 'warn' por defecto.
+// Usaremos logger.info() explícitamente para los mensajes que sí queremos ver.
 const logger = pino({
-  level: 'info',
+  level: 'warn', 
   transport: { target: 'pino-pretty' }
 });
 
 async function cleanSession() {
     try {
         await fsp.rm(SESSION_FILE_PATH, { recursive: true, force: true });
-        logger.info('Sesión anterior eliminada para un inicio limpio.');
+        // Este log es útil para depuración, pero se puede comentar si se desea un log aún más limpio.
+        // logger.info('Sesión anterior eliminada para un inicio limpio.');
     } catch (e) {
-        if (e.code !== 'ENOENT') { // ENOENT means the file/folder doesn't exist, which is fine.
+        if (e.code !== 'ENOENT') { // ENOENT significa que el archivo no existía, lo cual está bien.
             logger.error('Error limpiando la sesión antigua:', e.message);
         }
     }
@@ -42,7 +45,7 @@ async function connectToWhatsApp() {
     const sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      logger,
+      logger, // Pasamos el logger configurado a Baileys
       browser: ['Hey Manito!', 'Cloud Run', '2.0']
     });
 
@@ -50,15 +53,15 @@ async function connectToWhatsApp() {
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
-        logger.info('Nuevo código QR generado');
         gatewayStatus = 'qr';
         qrCode = qr;
+        // Log específico para la generación de QR
+        logger.warn('❗️ Un usuario necesita escanear el código QR para conectar.');
       }
 
       if (connection === 'close') {
         const reason = (lastDisconnect?.error)?.output?.statusCode;
         const shouldReconnect = reason !== DisconnectReason.loggedOut;
-        logger.warn('Conexión cerrada. Motivo:', reason, 'Reconectar:', shouldReconnect);
         
         gatewayStatus = shouldReconnect ? 'error' : 'disconnected';
         qrCode = null;
@@ -66,15 +69,14 @@ async function connectToWhatsApp() {
         if (shouldReconnect) {
           setTimeout(connectToWhatsApp, 3000);
         } else {
-          // Logged out, clean up session
           await cleanSession();
-          // Attempt to reconnect to get a new QR code
           setTimeout(connectToWhatsApp, 3000);
         }
       } else if (connection === 'open') {
-        logger.info('✅ Conectado con WhatsApp');
         gatewayStatus = 'connected';
         qrCode = null;
+        // Log específico para la conexión exitosa
+        logger.info('✅ Conexión con WhatsApp establecida con un usuario.');
       }
     });
 
@@ -85,8 +87,7 @@ async function connectToWhatsApp() {
       if (!msg.message || msg.key.fromMe) return;
 
       const sender = msg.key.remoteJid;
-      logger.info(`📩 Mensaje recibido de ${sender}`);
-
+      
       try {
         const type = Object.keys(msg.message)[0];
         const formData = new FormData();
@@ -97,13 +98,11 @@ async function connectToWhatsApp() {
         } else if (type === 'extendedTextMessage') {
           formData.append('message', msg.message.extendedTextMessage.text);
         } else if (type === 'audioMessage') {
-          logger.info('Mensaje de audio detectado');
           const audioBuffer = await sock.downloadMediaMessage(msg);
           const tempPath = path.join(os.tmpdir(), `temp_${Date.now()}.ogg`);
           await fsp.writeFile(tempPath, audioBuffer);
           formData.append('audio', fs.createReadStream(tempPath));
         } else {
-          logger.warn(`Tipo de mensaje no soportado: ${type}`);
           return;
         }
 
@@ -116,13 +115,11 @@ async function connectToWhatsApp() {
         const { replyText, replyAudio } = response.data || {};
         if (replyText) {
           await sock.sendMessage(sender, { text: replyText });
-          logger.info(`💬 Enviado: ${replyText}`);
         }
 
         if (replyAudio) {
           const audioData = Buffer.from(replyAudio.split(';base64,').pop(), 'base64');
           await sock.sendMessage(sender, { audio: audioData, mimetype: 'audio/wav' });
-          logger.info('🔊 Audio enviado');
         }
 
         await sock.sendPresenceUpdate('paused', sender);
@@ -151,7 +148,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-
   if (req.url === '/status') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: gatewayStatus }));
@@ -169,12 +165,10 @@ const server = http.createServer((req, res) => {
 
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, async () => {
-  logger.info(`🚀 Servidor HTTP listo en el puerto ${PORT}`);
-  await cleanSession(); // Limpia la sesión al iniciar
+  // Limpia la sesión al iniciar para asegurar un estado fresco
+  await cleanSession();
   connectToWhatsApp();
 });
 
 process.on('unhandledRejection', (r) => logger.error('Unhandled Rejection:', r));
 process.on('uncaughtException', (e) => logger.error('Uncaught Exception:', e));
-
-logger.info('NEXTJS_APP_URL:', NEXTJS_APP_URL);
