@@ -35,7 +35,8 @@ steps:
     - '--platform'
     - 'managed'
     - '--set-env-vars'
-    - 'NEXTJS_APP_URL=https://heymanito.com' # URL PÚBLICA DE TU APP
+    - 'NEXTJS_APP_URL=https://heymanito.com'
+    - 'FIREBASE_SERVICE_ACCOUNT_KEY=${_FIREBASE_SERVICE_ACCOUNT_KEY}'
     - '--allow-unauthenticated' # Permite que el servicio haga peticiones a internet
     - '--quiet'
   id: 'Deploy'
