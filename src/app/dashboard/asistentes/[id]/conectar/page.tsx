@@ -36,7 +36,8 @@ export default function ConectarPage() {
 
     const { data: assistant, isLoading: isAssistantLoading } = useDoc(assistantRef);
     const [gatewayStatus, setGatewayStatus] = useState<GatewayStatus>('loading');
-    const [loadingMessage, setLoadingMessage] = useState("Inicializando...");
+    const [qrCodeValue, setQrCodeValue] = useState<string | null>(null);
+    const [loadingMessage, setLoadingMessage] = useState("Inicializando conexión...");
     
     useEffect(() => {
         if (!assistantId) return;
@@ -50,20 +51,25 @@ export default function ConectarPage() {
                 setGatewayStatus(status);
 
                 if (status === 'qr') {
-                    setLoadingMessage("Solicitando código QR...");
-                    const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
-                    if (!qrRes.ok) throw new Error('Failed to fetch QR');
-                    const { qr } = await qrRes.json();
-                    
-                    if (qr && canvasRef.current) {
-                        QRCode.toCanvas(canvasRef.current, qr, { width: 256, errorCorrectionLevel: 'H' }, (error) => {
-                            if (error) console.error("Error generating QR code canvas:", error);
-                        });
-                        setLoadingMessage("¡Escanea el código para conectar!");
+                    setLoadingMessage("¡Escanea el código para conectar!");
+                    // Only fetch QR if we don't have it already
+                    if (!qrCodeValue) {
+                        const qrRes = await fetch(`${GATEWAY_URL}/qr?assistantId=${assistantId}`);
+                        if (!qrRes.ok) throw new Error('Failed to fetch QR');
+                        const { qr } = await qrRes.json();
+                        
+                        if (qr) {
+                            setQrCodeValue(qr);
+                            if (canvasRef.current) {
+                                QRCode.toCanvas(canvasRef.current, qr, { width: 256, errorCorrectionLevel: 'H' }, (error) => {
+                                    if (error) console.error("Error generating QR code canvas:", error);
+                                });
+                            }
+                        }
                     }
                 } else if (status === 'connected') {
                     setLoadingMessage("¡Conectado! Redirigiendo...");
-                     // Give a moment for the user to see the message
+                    // Give a moment for the user to see the message
                     setTimeout(() => {
                         router.push('/dashboard/asistentes');
                     }, 2000);
@@ -78,14 +84,12 @@ export default function ConectarPage() {
             }
         };
 
-        // Start polling immediately and then set an interval
         pollStatus();
         const intervalId = setInterval(pollStatus, 3000);
 
-        // Clear interval on component unmount
         return () => clearInterval(intervalId);
 
-    }, [assistantId, router]);
+    }, [assistantId, router, qrCodeValue]); // qrCodeValue is a dependency
 
 
     const getTitle = () => {
@@ -95,6 +99,18 @@ export default function ConectarPage() {
     }
 
     const renderStatusContent = () => {
+        // Always show the QR code if we have it, regardless of the current polling status
+        if (qrCodeValue) {
+             return (
+                <>
+                    <canvas ref={canvasRef} className="rounded-lg" />
+                    <p className="text-xs text-muted-foreground text-center max-w-xs pt-4">
+                        Abre WhatsApp en tu teléfono, ve a `Configuración` {'>'} `Dispositivos vinculados` y escanea el código.
+                    </p>
+                </>
+            );
+        }
+
         switch (gatewayStatus) {
             case 'loading':
             case 'disconnected':
@@ -103,15 +119,6 @@ export default function ConectarPage() {
                         <Progress value={50} className="w-full h-2 animate-pulse" />
                         <p className="text-xs text-center">{loadingMessage}</p>
                     </div>
-                );
-            case 'qr':
-                return (
-                    <>
-                        <canvas ref={canvasRef} className="rounded-lg"/>
-                        <p className="text-xs text-muted-foreground text-center max-w-xs pt-4">
-                            Abre WhatsApp en tu teléfono, ve a `Configuración` {'>'} `Dispositivos vinculados` y escanea el código.
-                        </p>
-                    </>
                 );
             case 'connected':
                  return (
@@ -128,7 +135,12 @@ export default function ConectarPage() {
                     </div>
                 );
             default:
-                return null;
+                return (
+                     <div className="flex flex-col items-center gap-4 text-muted-foreground w-56">
+                        <Progress value={50} className="w-full h-2 animate-pulse" />
+                        <p className="text-xs text-center">{loadingMessage}</p>
+                    </div>
+                );
         }
     }
 
