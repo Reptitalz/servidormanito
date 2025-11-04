@@ -145,7 +145,7 @@ export default function Home() {
               Elige el plan que se ajuste a tus necesidades.
             </p>
           </div>
-          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-sm mx-auto lg:max-w-none">
+          <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 items-start lg:max-w-none">
             {plans.map((plan) => (
               <div key={plan.name} className="pt-6">
                 <Card className={plan.popular ? "border-primary border-2 relative shadow-2xl" : "shadow-md"}>
