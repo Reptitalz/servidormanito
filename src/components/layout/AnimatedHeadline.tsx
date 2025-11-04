@@ -52,7 +52,7 @@ export function AnimatedHeadline() {
     <AnimatePresence mode="wait">
       <motion.div
         key="container"
-        className="inline-flex justify-center text-green-500 relative"
+        className="inline-flex justify-center text-green-500 relative mx-2"
       >
         {/* Hidden element to reserve space for the longest word */}
         <span className="invisible">
