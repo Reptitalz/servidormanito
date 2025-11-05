@@ -1,9 +1,28 @@
+/**
+ * @file Firestore Security Rules
+ * @description
+ * Enforces a strict user-ownership model for user-specific data
+ * and allows public read access to subscription plans.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profiles (owner-only)
+ * - /plans/{planId}: Public subscription plans
+ * - /users/{userId}/subscriptions/{subscriptionId}: User subscriptions (owner-only)
+ * - /users/{userId}/assistants/{assistantId}: User assistants (owner-only)
+ * - /users/{userId}/clients/{clientId}: User clients (owner-only)
+ * - /users/{userId}/transactions/{transactionId}: User transactions (owner-only)
+ *
+ * Key Rules:
+ * - Path-based ownership enforcement.
+ * - Admin access granted to reptitalz@heymanito.com.
+ * - Listing users is disabled for non-admins.
+ */
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Global Helper Functions ---
+    // Utility functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -12,102 +31,77 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
     function isAdmin() {
-      // This email must match the admin user's email.
       return request.auth.token.email == "reptitalz@heymanito.com";
     }
 
-    // --- User Profile Validation Functions ---
-    function isValidUserProfile(data) {
-      return data.displayName is string && data.displayName.size() > 0 &&
-             data.email is string && data.email.matches('.+@.+\..+') &&
-             data.photoURL is string &&
-             data.createdAt is timestamp;
-    }
-
-    // --- Assistant Validation Functions ---
-    function isValidAssistant(data, userId) {
-        return data.name is string && data.name.size() > 2 &&
-               data.personality is string &&
-               data.skills is list &&
-               data.status is string && (data.status == "Activo" || data.status == "Inactivo" || data.status == "Pausado") &&
-               data.userId == userId &&
-               data.createdAt is timestamp &&
-               data.lastUpdate is timestamp;
-    }
-
-    // --- Client Validation Functions ---
-     function isValidClient(data, userId) {
-        return data.name is string && data.name.size() > 0 &&
-               data.phone is string && data.phone.size() > 5 &&
-               data.userId == userId;
-    }
-
-    // --- Path Rules ---
-
+    /* =========================
+       USERS ROOT DOCUMENTS
+       ========================= */
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      
-      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data) &&
-                       request.resource.data.createdAt == request.time;
-
-      allow update: if isOwner(userId) &&
-                       isValidUserProfile(request.resource.data) &&
-                       request.resource.data.createdAt == resource.data.createdAt; // Cannot change creation date
-      
-      allow delete: if isOwner(userId);
-      
-      match /assistants/{assistantId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-
-        allow create: if isOwner(userId) && 
-                         isValidAssistant(request.resource.data, userId) &&
-                         request.resource.data.createdAt == request.time &&
-                         request.resource.data.lastUpdate == request.time;
-                         
-        allow update: if isOwner(userId) &&
-                         isValidAssistant(request.resource.data, userId) &&
-                         request.resource.data.userId == resource.data.userId &&       // Cannot change owner
-                         request.resource.data.createdAt == resource.data.createdAt && // Cannot change creation date
-                         request.resource.data.lastUpdate == request.time;             // Must be a server timestamp
-                         
-        allow delete: if isOwner(userId);
-      }
-      
-      match /clients/{clientId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-
-        allow create: if isOwner(userId) && isValidClient(request.resource.data, userId);
-        allow update: if isOwner(userId) && isValidClient(request.resource.data, userId) &&
-                         request.resource.data.userId == resource.data.userId; // Cannot change owner
-        allow delete: if isOwner(userId);
-      }
-      
-      match /transactions/{transactionId} {
-        // Correct rule: allow list and get for the owner or admin
-        allow get, list: if isOwner(userId) || isAdmin();
-        // Transactions should only be created by a trusted backend process (e.g., Stripe webhook)
-        allow create, update, delete: if false; 
-      }
-
-      match /subscriptions/{subscriptionId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        
-        // Allow create/update/delete only for owner with validation
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isOwner(userId);
-      }
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
+    /* =========================
+       PUBLIC PLANS
+       ========================= */
     match /plans/{planId} {
       allow get: if true;
       allow list: if true;
-      allow create, update, delete: if false; // Managed by backend only
+      allow create, update, delete: if false;
     }
 
-    // Collection group query for assistants, only for admins.
+    /* =========================
+       USER SUBSCRIPTIONS
+       ========================= */
+    match /users/{userId}/subscriptions/{subscriptionId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /* =========================
+       USER ASSISTANTS
+       ========================= */
+    match /users/{userId}/assistants/{assistantId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /* =========================
+       USER CLIENTS
+       ========================= */
+    match /users/{userId}/clients/{clientId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /* =========================
+       USER TRANSACTIONS (ADDED)
+       ========================= */
+    match /users/{userId}/transactions/{transactionId} {
+      allow get, list: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && (!("userId" in request.resource.data) || request.resource.data.userId == request.auth.uid);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /* =========================
+       COLLECTION GROUP: ASSISTANTS (ADMIN ONLY)
+       ========================= */
     match /{path=**}/assistants/{assistantId} {
       allow get, list: if isAdmin();
     }
