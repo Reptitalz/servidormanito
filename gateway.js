@@ -1,4 +1,3 @@
-
 import express from "express";
 import makeWASocket, { DisconnectReason } from "@whiskeysockets/baileys";
 import pino from "pino";
