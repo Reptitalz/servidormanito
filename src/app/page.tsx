@@ -96,7 +96,7 @@ export default function Home() {
           <section className="relative pt-48 pb-32 text-center text-white overflow-hidden">
             <div className="container mx-auto px-4 relative z-10">
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter font-headline mb-4">
-                <span className="block">Automatiza tu <AnimatedHeadline /></span>
+                <span className="block">Automatiza tu <span className="ml-2"><AnimatedHeadline /></span></span>
                 <span className="block">Conecta con tus Clientes</span>
               </h1>
               <p className="text-lg md:text-xl max-w-3xl mx-auto text-white/80 mb-8">
