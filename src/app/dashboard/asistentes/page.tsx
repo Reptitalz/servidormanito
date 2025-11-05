@@ -169,7 +169,7 @@ export default function AsistentesPage() {
                           alt={assistant.name} 
                           width={48} 
                           height={48} 
-                          className="rounded-full border object-cover" 
+                          className="rounded-full border object-cover aspect-square" 
                           data-ai-hint="robot avatar"
                         />
                         {assistant.status === 'Activo' && (
@@ -417,7 +417,7 @@ export default function AsistentesPage() {
                           alt="Avatar actual" 
                           width={64} 
                           height={64} 
-                          className="rounded-full object-cover" 
+                          className="rounded-full object-cover aspect-square" 
                           data-ai-hint="robot avatar"
                         />
                         <Input id="picture-edit" type="file" accept="image/png, image/jpeg" className="flex-1" onChange={(e) => {
@@ -442,3 +442,5 @@ export default function AsistentesPage() {
     </>
   );
 }
+
+    
