@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
               Última actividad: {summaryData.assistants.lastActivity}
             </p>
             <Button asChild size="sm" className="mt-4 w-full">
-              <Link href="/admin/monitor">
+              <Link href="/dashboard/processes">
                 Ir al Monitor <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
