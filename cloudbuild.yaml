@@ -33,6 +33,14 @@ steps:
     - '$PROJECT_ID'
     - '--member=serviceAccount:${_COMPUTE_SERVICE_ACCOUNT}'
     - '--role=roles/secretmanager.secretAccessor'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+    - 'projects'
+    - 'add-iam-policy-binding'
+    - '$PROJECT_ID'
+    - '--member=serviceAccount:${_COMPUTE_SERVICE_ACCOUNT}'
+    - '--role=roles/storage.objectAdmin'
 
 # 4. Desplegar la imagen en Cloud Run con la variable de entorno y permisos de red
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -50,7 +58,7 @@ steps:
     - '--service-account'
     - '${_COMPUTE_SERVICE_ACCOUNT}'
     - '--set-env-vars'
-    - 'NEXTJS_APP_URL=https://heymanito.com'
+    - 'BUCKET_NAME=manito-sessions,NEXTJS_APP_URL=https://heymanito.com'
     - '--set-secrets=FIREBASE_SERVICE_ACCOUNT_KEY=FIREBASE_SERVICE_ACCOUNT_KEY:latest,GATEWAY_SECRET=GATEWAY_SECRET:latest'
     - '--allow-unauthenticated'
     - '--quiet'

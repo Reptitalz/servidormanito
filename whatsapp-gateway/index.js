@@ -1,20 +1,18 @@
 
 import express from "express";
-import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
+import makeWASocket, { DisconnectReason } from "@whiskeysockets/baileys";
 import pino from "pino";
-import fs from "fs";
-import fsp from "fs/promises";
 import cors from "cors";
 import path from "path";
 import axios from 'axios';
 import FormData from 'form-data';
-import os from 'os';
+import fs from "fs";
+import { getBaileysAuthState } from "./auth-state.js";
+
 
 // === CONFIGURACIÓN ===
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
-// MODIFICADO: Usar el directorio temporal del sistema para la persistencia de sesiones
-const SESSIONS_DIR = path.join(os.tmpdir(), 'sessions');
 
 // Logger principal para nuestros eventos de aplicación
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
@@ -29,16 +27,13 @@ app.use(express.json());
 const sessions = {}; // guardará las conexiones por ID
 
 async function createSession(assistantId) {
-  const sessionPath = path.join(SESSIONS_DIR, assistantId);
-  await fsp.mkdir(sessionPath, { recursive: true });
-
-  const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
-  const sock = makeWASocket({
-    auth: state,
-    logger: baileysLogger, // Usar el logger silencioso para Baileys
-    printQRInTerminal: false,
-    browser: ["HeyManito", "Cloud Run", "3.0"],
-  });
+    const { state, saveCreds } = await getBaileysAuthState();
+    const sock = makeWASocket({
+        auth: state,
+        logger: baileysLogger, // Usar el logger silencioso para Baileys
+        printQRInTerminal: false,
+        browser: ["HeyManito", "Cloud Run", "3.0"],
+    });
 
   sessions[assistantId] = { sock, qr: null, status: "loading" };
 
@@ -63,26 +58,17 @@ async function createSession(assistantId) {
       const reason = lastDisconnect?.error?.output?.statusCode;
       const shouldReconnect = reason !== DisconnectReason.loggedOut;
       
-      logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}. Reintentando: ${shouldReconnect}`);
+      logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}.`);
       
       session.status = "disconnected";
 
       if (reason === DisconnectReason.loggedOut) {
           logger.info(`[${assistantId}] Sesión cerrada por el usuario. Limpiando...`);
-          if (fs.existsSync(sessionPath)) {
-              await fsp.rm(sessionPath, { recursive: true, force: true });
-          }
+          // La limpieza de GCS podría manejarse aquí si es necesario
           delete sessions[assistantId];
-      } else if (reason === DisconnectReason.notAllowed) {
-            logger.error(`[${assistantId}] Error de sesión irrecuperable (405). Forzando limpieza y reinicio.`);
-            if (fs.existsSync(sessionPath)) {
-                await fsp.rm(sessionPath, { recursive: true, force: true });
-            }
-            delete sessions[assistantId];
-            // La próxima llamada a /status creará una nueva sesión desde cero.
       } else if (shouldReconnect) {
-        // La librería intentará reconectar automáticamente para otros errores (ej. de red)
         logger.info(`[${assistantId}] Se intentará reconectar automáticamente.`);
+        createSession(assistantId).catch(err => logger.error(`[${assistantId}] Error al reiniciar la sesión:`, err));
       }
     }
   });
@@ -100,14 +86,17 @@ async function createSession(assistantId) {
             formData.append('from', sender);
             formData.append('assistantId', assistantId);
 
+            let tempPath;
+
             if (type === 'conversation')
                 formData.append('message', msg.message.conversation);
             else if (type === 'extendedTextMessage')
                 formData.append('message', msg.message.extendedTextMessage.text);
             else if (type === 'audioMessage') {
                 const audioBuffer = await sock.downloadMediaMessage(msg);
-                const tempPath = path.join(os.tmpdir(), `temp_${Date.now()}.ogg`);
-                await fsp.writeFile(tempPath, audioBuffer);
+                // Usamos una ruta temporal real
+                tempPath = path.join("/tmp", `temp_audio_${Date.now()}.ogg`);
+                await fs.promises.writeFile(tempPath, audioBuffer);
                 formData.append('audio', fs.createReadStream(tempPath));
             } else return;
 
@@ -121,6 +110,12 @@ async function createSession(assistantId) {
                 await sock.sendMessage(sender, { audio: audioData, mimetype: 'audio/wav' });
             }
             await sock.sendPresenceUpdate('paused', sender);
+
+            // Limpiar archivo temporal si se usó
+            if (tempPath) {
+                await fs.promises.unlink(tempPath);
+            }
+
         } catch (err) {
             logger.error(`[${assistantId}] Error procesando mensaje: ${err.message}`);
             await sock.sendMessage(sender, { text: 'Ocurrió un error al procesar tu mensaje.' });
