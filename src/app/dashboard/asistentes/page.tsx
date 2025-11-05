@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from "react";
 import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle, Wand2, Sheet, BrainCircuit, SlidersHorizontal, Image as ImageIcon, Edit, Trash2, QrCode } from "lucide-react";
@@ -367,6 +368,9 @@ export default function AsistentesPage() {
                     <p className="mt-2 text-sm text-muted-foreground">
                         Crea tu primer asistente para empezar a automatizar tus conversaciones.
                     </p>
+                    <Button asChild className="mt-6">
+                        <Link href="/dashboard/asistentes/crear">Crear Asistente</Link>
+                    </Button>
                 </CardContent>
             </Card>
         )}

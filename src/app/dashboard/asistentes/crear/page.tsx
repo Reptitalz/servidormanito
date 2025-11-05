@@ -483,3 +483,4 @@ export default function CreateAssistantPage() {
         </div>
     );
 }
+
