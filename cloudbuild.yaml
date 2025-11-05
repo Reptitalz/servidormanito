@@ -1,79 +1,43 @@
-
 steps:
-# 1. Construir la imagen del contenedor
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'build'
-    - '-t'
-    - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
-    - './whatsapp-gateway'
-  id: 'Build'
+  # 1️⃣ Construir la imagen del contenedor
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
+      - '.'
+    id: 'Construir imagen'
 
-# 2. Subir la imagen a Artifact Registry
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'push'
-    - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
-  id: 'Push'
+  # 2️⃣ Subir la imagen al Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
+    id: 'Subir imagen'
 
-# 3. Asignar roles necesarios a la cuenta de servicio de Cloud Run
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args:
-    - 'projects'
-    - 'add-iam-policy-binding'
-    - '$PROJECT_ID'
-    - '--member=serviceAccount:${_COMPUTE_SERVICE_ACCOUNT}'
-    - '--role=roles/datastore.user'
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args:
-    - 'projects'
-    - 'add-iam-policy-binding'
-    - '$PROJECT_ID'
-    - '--member=serviceAccount:${_COMPUTE_SERVICE_ACCOUNT}'
-    - '--role=roles/secretmanager.secretAccessor'
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args:
-    - 'projects'
-    - 'add-iam-policy-binding'
-    - '$PROJECT_ID'
-    - '--member=serviceAccount:${_COMPUTE_SERVICE_ACCOUNT}'
-    - '--role=roles/storage.objectAdmin'
+  # 3️⃣ Desplegar en Cloud Run con permisos adecuados
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image'
+      - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--region'
+      - '$_DEPLOY_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'PORT=8080,NODE_ENV=production,NEXTJS_APP_URL=https://studio--studio-1128284178-7d125.us-central1.hosted.app'
+      - '--service-account'
+      - '$_SERVICE_ACCOUNT'
 
-# 4. Desplegar la imagen en Cloud Run con la variable de entorno y permisos de red
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args:
-    - 'run'
-    - 'deploy'
-    - '$_SERVICE_NAME'
-    - '--image'
-    - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
-    - '--region'
-    - '$_DEPLOY_REGION'
-    - '--platform'
-    - 'managed'
-    - '--service-account'
-    - '${_COMPUTE_SERVICE_ACCOUNT}'
-    - '--set-env-vars'
-    - 'BUCKET_NAME=manito-sessions,NEXTJS_APP_URL=https://heymanito.com'
-    - '--set-secrets=FIREBASE_SERVICE_ACCOUNT_KEY=FIREBASE_SERVICE_ACCOUNT_KEY:latest,GATEWAY_SECRET=GATEWAY_SECRET:latest'
-    - '--allow-unauthenticated'
-    - '--quiet'
-  id: 'Deploy'
-  availableSecrets:
-    secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/FIREBASE_SERVICE_ACCOUNT_KEY/versions/latest
-      env: 'FIREBASE_SERVICE_ACCOUNT_KEY'
-    - versionName: projects/$PROJECT_ID/secrets/GATEWAY_SECRET/versions/latest
-      env: 'GATEWAY_SECRET'
-
-# Guardar la URL de la imagen en los metadatos de la compilación
 images:
   - '$_DEPLOY_REGION-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/$_SERVICE_NAME:$COMMIT_SHA'
 
-# Usar las variables de sustitución predeterminadas del activador
-options:
-  logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _SERVICE_NAME: 'servidor-manito'
+  _DEPLOY_REGION: 'us-central1'
+  _SERVICE_ACCOUNT: 'cloud-run-writer@$PROJECT_ID.iam.gserviceaccount.com'
