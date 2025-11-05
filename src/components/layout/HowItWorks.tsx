@@ -91,8 +91,8 @@ export function HowItWorks() {
                             variants={cardVariants}
                         >
                             <Card className="shadow-lg hover:shadow-primary/20 transition-shadow duration-300 bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
-                                <div className="grid md:grid-cols-3 items-center">
-                                    <div className="md:col-span-2 p-6 md:p-8">
+                                <div className="grid md:grid-cols-2 items-center">
+                                    <div className="p-6 md:p-8">
                                         <div className="flex items-center gap-6">
                                             <motion.div 
                                                 className="hidden md:block bg-primary/10 p-4 rounded-full w-fit animate-float"
@@ -106,7 +106,7 @@ export function HowItWorks() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="md:col-span-1 p-6 bg-muted/50 h-full flex items-center justify-center min-h-[150px]">
+                                    <div className="bg-muted/50 h-full flex items-center justify-center min-h-[200px] p-6">
                                         <span className="text-xs text-muted-foreground italic">Canvas para animación</span>
                                     </div>
                                 </div>
