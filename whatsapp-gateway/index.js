@@ -13,7 +13,8 @@ import os from 'os';
 // === CONFIGURACIÓN ===
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
-const SESSIONS_DIR = path.join(process.cwd(), 'sessions'); // Usar directorio local para persistencia
+// MODIFICADO: Usar el directorio temporal del sistema para la persistencia de sesiones
+const SESSIONS_DIR = path.join(os.tmpdir(), 'sessions');
 
 // Logger principal para nuestros eventos de aplicación
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
