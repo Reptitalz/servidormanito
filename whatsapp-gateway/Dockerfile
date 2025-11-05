@@ -1,25 +1,30 @@
-# 1. Imagen base ligera de Node.js
-FROM node:20
+# Imagen base ligera con Node.js
+FROM node:20-slim
 
-# 2. Directorio de trabajo dentro del contenedor
+# Instalar git (necesario para algunas dependencias npm) y otras herramientas.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Establecer directorio de trabajo
 WORKDIR /usr/src/app
 
-# 3. Copiar los archivos de dependencias
+# Copiar package.json y lockfile primero para aprovechar el caché de Docker
 COPY package*.json ./
 
-# 4. Instalar dependencias sin las de desarrollo
-RUN npm ci --omit=dev
+# Instalar dependencias de producción
+RUN npm install --omit=dev
 
-# 5. Copiar el resto del código fuente
+# Copiar el resto del código fuente
 COPY . .
 
-# 6. Variables de entorno
+# Variables de entorno (pueden ser sobreescritas por Cloud Run)
 ENV NODE_ENV=production
 ENV PORT=8080
-ENV NEXTJS_APP_URL=https://studio--studio-1128284178-7d125.us-central1.hosted.app
 
-# 7. Exponer el puerto (Cloud Run requiere el 8080)
+# Exponer el puerto para Cloud Run
 EXPOSE 8080
 
-# 8. Comando para iniciar el servidor
+# Comando para iniciar la aplicación
 CMD ["node", "index.js"]

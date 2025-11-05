@@ -57,9 +57,8 @@ async function createSession(assistantId) {
 
     if (connection === "close") {
       const reason = lastDisconnect?.error?.output?.statusCode;
-      const shouldReconnect = reason !== DisconnectReason.loggedOut;
       
-      logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}. Reintentando: ${shouldReconnect}`);
+      logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}.`);
       
       session.status = "disconnected";
 
@@ -72,9 +71,8 @@ async function createSession(assistantId) {
           await removeSession(assistantId);
           delete sessions[assistantId];
           // No reconectar, el próximo chequeo de /status creará una sesión limpia.
-      } else if (shouldReconnect) {
-        logger.info(`[${assistantId}] Se intentará reconectar automáticamente.`);
-        createSession(assistantId).catch(err => logger.error(`[${assistantId}] Error al reiniciar la sesión:`, err));
+      } else {
+        logger.info(`[${assistantId}] Se intentará reconectar en la próxima solicitud de /status.`);
       }
     }
   });
@@ -139,6 +137,7 @@ app.get("/status", async (req, res) => {
     logger.info(`[${assistantId}] No hay sesión activa o está desconectada. Creando una nueva...`);
     try {
         await createSession(assistantId);
+        // La sesión se está inicializando, el próximo poll obtendrá el estado 'qr' o 'connected'.
         return res.json({ status: "initializing" });
     } catch(e) {
         logger.error(`[${assistantId}] Error al crear sesión:`, e);
@@ -150,7 +149,7 @@ app.get("/status", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-    res.status(200).send("Hey Manito! Gateway - OK");
+    res.status(200).send("✅ Hey Manito! Gateway funcionando correctamente.");
 });
 app.get("/_health", (req, res) => {
     res.status(200).send("OK");
