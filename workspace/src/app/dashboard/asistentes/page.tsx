@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from "react";
 import { PlusCircle, MoreHorizontal, Bot, MessageSquare, ArrowLeft, ArrowRight, Sparkles, Settings, ShieldCheck, MessageCircle, Database, CheckCircle, Wand2, Sheet, BrainCircuit, SlidersHorizontal, Image as ImageIcon, Edit, Trash2, QrCode } from "lucide-react";

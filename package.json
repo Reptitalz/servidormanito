@@ -1,28 +1,70 @@
 {
-  "name": "whatsapp-gateway",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
+  "name": "nextn",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "start": "node index.js"
+    "dev": "concurrently \"npm:genkit:watch\" \"npm:next:dev\"",
+    "next:dev": "next dev --port 9002 --hostname 0.0.0.0",
+    "genkit:watch": "genkit watch",
+    "build": "next build",
+    "start": "next start -p 9002",
+    "lint": "next lint"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.11.0",
+    "@radix-ui/react-accordion": "^1.2.0",
+    "@radix-ui/react-alert-dialog": "^1.1.1",
+    "@radix-ui/react-avatar": "^1.1.0",
+    "@radix-ui/react-checkbox": "^1.1.1",
+    "@radix-ui/react-collapsible": "^1.1.0",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-dropdown-menu": "^2.1.1",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-menubar": "^1.1.1",
+    "@radix-ui/react-popover": "^1.1.1",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-radio-group": "^1.2.0",
+    "@radix-ui/react-scroll-area": "^1.1.0",
+    "@radix-ui/react-select": "^2.1.1",
+    "@radix-ui/react-separator": "^1.1.0",
+    "@radix-ui/react-slider": "^1.2.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.1.0",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.1",
+    "@radix-ui/react-tooltip": "^1.1.2",
     "@whiskeysockets/baileys": "^6.7.5",
-<<<<<<< HEAD
-=======
     "axios": "^1.7.2",
-    "class-variance-authority": "^0.7.1",
+    "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
->>>>>>> cb125af (The app isn't starting. Please investigate what could be wrong based on)
     "cors": "^2.8.5",
+    "embla-carousel-autoplay": "^8.1.7",
+    "embla-carousel-react": "^8.1.7",
     "express": "^4.19.2",
-    "pino": "^9.2.0"
+    "firebase": "^10.12.3",
+    "flag-icons": "^7.2.3",
+    "formidable": "^3.5.1",
+    "framer-motion": "^11.3.8",
+    "genkit": "^1.20.0",
+    "lucide-react": "^0.412.0",
+    "next": "14.2.5",
+    "pino": "^9.2.0",
+    "qrcode": "^1.5.3",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.52.1",
+    "react-international-phone": "^4.3.0",
+    "react-swipeable": "^7.0.1",
+    "recharts": "^2.12.7",
+    "stripe": "^16.2.0",
+    "tailwind-merge": "^2.4.0",
+    "tailwindcss-animate": "^1.0.7",
+    "wav": "^1.0.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "pino-pretty": "^11.2.1"
-=======
+    "@genkit-ai/google-genai": "^1.20.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/formidable": "^3.4.5",
@@ -33,10 +75,8 @@
     "@types/wav": "^1.0.4",
     "concurrently": "^8.2.2",
     "genkit-cli": "^1.20.0",
-    "pino-pretty": "^11.2.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
->>>>>>> cb125af (The app isn't starting. Please investigate what could be wrong based on)
   }
 }
