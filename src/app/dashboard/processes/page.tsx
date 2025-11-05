@@ -70,7 +70,7 @@ export default function ProcessesPage() {
                         {managementSections.map(navSection => (
                             <Button
                                 key={navSection.id}
-                                variant={pathname === navSection.href ? "secondary" : "ghost"}
+                                variant={pathname === navSection.href ? "default" : "ghost"}
                                 className="justify-start gap-3"
                                 asChild
                             >

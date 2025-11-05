@@ -208,7 +208,7 @@ export default function GestorPage() {
                         {managementSections.map(section => (
                             <Button
                                 key={section.id}
-                                variant={pathname === section.href ? "secondary" : "ghost"}
+                                variant={pathname === section.href ? "default" : "ghost"}
                                 className="justify-start gap-3"
                                 asChild
                             >
