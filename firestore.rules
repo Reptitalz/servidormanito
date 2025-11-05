@@ -73,53 +73,53 @@ service cloud.firestore {
                        request.resource.data.createdAt == resource.data.createdAt; // Cannot change creation date
       
       allow delete: if isOwner(userId);
+      
+      match /assistants/{assistantId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+
+        allow create: if isOwner(userId) && 
+                         isValidAssistant(request.resource.data, userId) &&
+                         request.resource.data.createdAt == request.time &&
+                         request.resource.data.lastUpdate == request.time;
+                         
+        allow update: if isOwner(userId) &&
+                         isValidAssistant(request.resource.data, userId) &&
+                         request.resource.data.userId == resource.data.userId &&       // Cannot change owner
+                         request.resource.data.createdAt == resource.data.createdAt && // Cannot change creation date
+                         request.resource.data.lastUpdate == request.time;             // Must be a server timestamp
+                         
+        allow delete: if isOwner(userId);
+      }
+      
+      match /clients/{clientId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+
+        allow create: if isOwner(userId) && isValidClient(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidClient(request.resource.data, userId) &&
+                         request.resource.data.userId == resource.data.userId; // Cannot change owner
+        allow delete: if isOwner(userId);
+      }
+      
+      match /transactions/{transactionId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        // Transactions should only be created by a trusted backend process (e.g., Stripe webhook)
+        allow create, update, delete: if false; 
+      }
+
+      match /subscriptions/{subscriptionId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        
+        // Allow create/update/delete only for owner with validation
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isOwner(userId);
+      }
     }
 
     match /plans/{planId} {
       allow get: if true;
       allow list: if true;
       allow create, update, delete: if false; // Managed by backend only
-    }
-
-    match /users/{userId}/subscriptions/{subscriptionId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      
-      // Allow create/update/delete only for owner with validation
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isOwner(userId);
-    }
-
-    match /users/{userId}/assistants/{assistantId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-
-      allow create: if isOwner(userId) && 
-                       isValidAssistant(request.resource.data, userId) &&
-                       request.resource.data.createdAt == request.time &&
-                       request.resource.data.lastUpdate == request.time;
-                       
-      allow update: if isOwner(userId) &&
-                       isValidAssistant(request.resource.data, userId) &&
-                       request.resource.data.userId == resource.data.userId &&       // Cannot change owner
-                       request.resource.data.createdAt == resource.data.createdAt && // Cannot change creation date
-                       request.resource.data.lastUpdate == request.time;             // Must be a server timestamp
-                       
-      allow delete: if isOwner(userId);
-    }
-    
-    match /users/{userId}/clients/{clientId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-
-      allow create: if isOwner(userId) && isValidClient(request.resource.data, userId);
-      allow update: if isOwner(userId) && isValidClient(request.resource.data, userId) &&
-                       request.resource.data.userId == resource.data.userId; // Cannot change owner
-      allow delete: if isOwner(userId);
-    }
-    
-    match /users/{userId}/transactions/{transactionId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      // Transactions should only be created by a trusted backend process (e.g., Stripe webhook)
-      allow create, update, delete: if false; 
     }
 
     // Collection group query for assistants, only for admins.
