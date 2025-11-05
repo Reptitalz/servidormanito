@@ -36,7 +36,7 @@ export default function Home() {
       period: "MXN / 5,000 créditos",
       description: "Para negocios que escalan.",
       features: ["~5,000 Mensajes", "Asistentes ilimitados", "Integraciones y acceso API", "Soporte prioritario"],
-      cta: "Comprar con Google Pay",
+      cta: "Pagar con Google Pay",
       popular: true,
       isGooglePay: true,
     },

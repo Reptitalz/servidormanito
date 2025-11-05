@@ -74,10 +74,11 @@ const GooglePayButton: React.FC<GooglePayButtonProps> = ({ plan }) => {
             }).then((response: { result: any; }) => {
                 if (response.result && buttonRef.current) {
                     const button = googlePayClient.createButton({
-                        onClick: handleCheckout, // Use our new handler
+                        onClick: handleCheckout,
                         buttonColor: 'default',
                         buttonType: 'buy', 
                         buttonSizeMode: 'fill',
+                        buttonLocale: 'es', // Set button language to Spanish
                     });
                     buttonRef.current.appendChild(button);
                 }
