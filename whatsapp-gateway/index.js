@@ -14,7 +14,11 @@ import os from 'os';
 const NEXTJS_APP_URL = process.env.NEXTJS_APP_URL || "https://heymanito.com";
 const NEXTJS_WEBHOOK_URL = `${NEXTJS_APP_URL}/api/webhook`;
 const SESSIONS_DIR = path.join(process.cwd(), 'sessions'); // Usar directorio local para persistencia
+
+// Logger principal para nuestros eventos de aplicación
 const logger = pino({ level: 'info', transport: { target: 'pino-pretty' } });
+// Logger para Baileys, configurado en silent para evitar ruido
+const baileysLogger = pino({ level: 'silent' });
 
 
 const app = express();
@@ -30,9 +34,9 @@ async function createSession(assistantId) {
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
   const sock = makeWASocket({
     auth: state,
-    logger,
-    printQRInTerminal: false, // No imprimir en terminal, lo mandamos por API
-    browser: ["HeyManito", "Desktop", "1.0.0"],
+    logger: baileysLogger, // Usar el logger silencioso para Baileys
+    printQRInTerminal: false,
+    browser: ["HeyManito", "Cloud Run", "3.0"],
   });
 
   sessions[assistantId] = { sock, qr: null, status: "loading" };
@@ -45,27 +49,38 @@ async function createSession(assistantId) {
     if (qr) {
       session.qr = qr;
       session.status = "qr";
-      console.log(`[${assistantId}] QR generado`);
+      logger.info(`[${assistantId}] QR disponible para escanear.`);
     }
 
     if (connection === "open") {
       session.status = "connected";
-      console.log(`[${assistantId}] Conectado`);
+      logger.info(`[${assistantId}] Conectado exitosamente.`);
     }
 
     if (connection === "close") {
       const reason = lastDisconnect?.error?.output?.statusCode;
-      if (reason === DisconnectReason.loggedOut) {
-        console.log(`[${assistantId}] Dispositivo deslogueado, limpiando sesión.`);
-        // Borra los archivos de sesión
-        await fsp.rm(sessionPath, { recursive: true, force: true });
-        delete sessions[assistantId]; // Elimina de memoria
+      const shouldReconnect = reason !== DisconnectReason.loggedOut;
+      
+      logger.warn(`[${assistantId}] Conexión cerrada. Razón: ${reason}. Reintentando: ${shouldReconnect}`);
+
+      if (!shouldReconnect) {
+        logger.info(`[${assistantId}] Sesión cerrada permanentemente. Limpiando...`);
+        if (fs.existsSync(sessionPath)) {
+            await fsp.rm(sessionPath, { recursive: true, force: true });
+        }
+        delete sessions[assistantId];
       } else {
-         session.status = "disconnected";
-         console.log(`[${assistantId}] Desconectado, intentando reconectar...`);
-         // La librería intentará reconectar automáticamente. 
-         // Si falla, se necesitará un nuevo QR.
-         createSession(assistantId).catch(err => console.error(`[${assistantId}] Error al recrear sesión:`, err));
+        session.status = "disconnected";
+        // La librería intentará reconectar automáticamente. 
+        // Si el error es 405 (no permitido), limpiamos y forzamos un nuevo QR.
+        if (reason === DisconnectReason.notAllowed) {
+            logger.error(`[${assistantId}] Error de sesión (405). Forzando limpieza y reinicio.`);
+            if (fs.existsSync(sessionPath)) {
+                await fsp.rm(sessionPath, { recursive: true, force: true });
+            }
+            delete sessions[assistantId];
+            // La próxima llamada a /status creará una nueva sesión desde cero.
+        }
       }
     }
   });
@@ -119,32 +134,20 @@ app.get("/status", async (req, res) => {
   const { assistantId } = req.query;
   if (!assistantId) return res.status(400).json({ error: "Falta assistantId" });
 
-  const session = sessions[assistantId];
+  let session = sessions[assistantId];
   if (!session || session.status === 'disconnected') {
-    // Si no hay sesión o está desconectada, intenta crear una nueva
+    logger.info(`[${assistantId}] No hay sesión activa o está desconectada. Creando una nueva...`);
     try {
         await createSession(assistantId);
-        // Responde que está inicializando, el frontend volverá a preguntar
+        // La sesión se está inicializando. El frontend volverá a preguntar.
         return res.json({ status: "initializing" });
     } catch(e) {
-        console.error(`Error al crear sesión para ${assistantId}`, e);
+        logger.error(`[${assistantId}] Error al crear sesión:`, e);
         return res.status(500).json({ error: 'No se pudo crear la sesión' });
     }
   }
 
-  res.json({ status: session.status });
-});
-
-// 🔹 Endpoint para obtener el QR
-app.get("/qr", (req, res) => {
-  const { assistantId } = req.query;
-  if (!assistantId) return res.status(400).json({ error: "Falta assistantId" });
-
-  const session = sessions[assistantId];
-  if (!session) return res.status(404).json({ error: "Sesión no encontrada" });
-  if (!session.qr) return res.status(404).json({ error: "QR no disponible" });
-
-  res.json({ qr: session.qr });
+  res.json({ status: session.status, qr: session.qr });
 });
 
 // Endpoint de salud para Cloud Run
@@ -157,4 +160,4 @@ app.get("/_health", (req, res) => {
 
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => logger.info(`🚀 Servidor corriendo en puerto ${PORT}`));
