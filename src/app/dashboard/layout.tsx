@@ -38,7 +38,9 @@ const MobileBottomNav = ({ isSpecialPage, assistantCount }: { isSpecialPage: boo
                 'grid grid-cols-4 items-center justify-around h-16'
             )}>
                 {navLinks.map(link => {
-                    const isActive = pathname.startsWith(link.href);
+                    const isActive = link.href === '/dashboard'
+                        ? pathname === link.href
+                        : pathname.startsWith(link.href);
                     const isAssistantsLink = link.href === '/dashboard/asistentes';
                     return (
                         <Link key={`${link.href}-${link.label}-mobile`} href={link.href} className={cn('relative flex flex-col items-center justify-center gap-1 transition-colors h-full', isActive ? 'text-primary' : 'text-muted-foreground hover:text-primary')}>
