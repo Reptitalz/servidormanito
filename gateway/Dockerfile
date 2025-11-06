@@ -10,11 +10,10 @@ WORKDIR /usr/src/app
 # Copiar los archivos de definición de dependencias
 COPY package*.json ./
 
-# Instalar las dependencias del proyecto.
-# Usar --omit=dev para no instalar dependencias de desarrollo en producción
+# Instalar las dependencias del proyecto (solo producción)
 RUN npm install --omit=dev
 
-# Copiar el resto del código de la aplicación al directorio de trabajo
+# Copiar el resto del código
 COPY . .
 
 # Variables de entorno

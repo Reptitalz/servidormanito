@@ -1,12 +1,12 @@
 steps:
   # 1. Construir la imagen del Gateway
   - name: 'gcr.io/cloud-builders/docker'
-    dir: 'gateway' # <- ENTRAR EN LA CARPETA GATEWAY
+    dir: 'gateway'
     args:
       - 'build'
       - '-t'
       - '${_DEPLOY_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE_NAME}:${COMMIT_SHA}'
-      - '.' # El contexto ahora es la carpeta 'gateway'
+      - '.'
     id: 'Build Gateway'
 
   # 2. Subir la imagen del Gateway
@@ -33,7 +33,7 @@ steps:
       - '--port'
       - '8080'
       - '--set-env-vars'
-      - 'BUCKET_NAME=manito-sessions'
+      - 'BUCKET_NAME=manito-sessions,GEMINI_API_KEY=${_GEMINI_API_KEY}'
       - '--service-account'
       - 'whatsapp-gateway-sa@${PROJECT_ID}.iam.gserviceaccount.com'
     id: 'Deploy Gateway'
@@ -44,6 +44,7 @@ images:
 substitutions:
   _SERVICE_NAME: servidormanito
   _DEPLOY_REGION: europe-west1
+  _GEMINI_API_KEY: your-gemini-api-key
 
 options:
   logging: CLOUD_LOGGING_ONLY
