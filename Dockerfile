@@ -15,4 +15,4 @@ RUN npm install
 COPY . .
 
 # Comando para iniciar SOLAMENTE el gateway
-CMD ["node", "gateway.js"]
+CMD ["node", "index.js"]
